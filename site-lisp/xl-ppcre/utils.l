@@ -79,6 +79,16 @@
 (defun make-register-array (n fn)
   (make-array n :initial-contents (make-register-list n fn)))
 
+(defun upcase-string-p (str)
+  (every #'upper-case-p str))
+
+(defun downcase-string-p (str)
+  (every #'lower-case-p str))
+
+(defun capitalcase-string-p (str)
+  (and (upper-case-p (char str 0))
+       (downcase-string-p (subseq str 1))))
+
 
 (provide "xl-ppcre/utils")
 

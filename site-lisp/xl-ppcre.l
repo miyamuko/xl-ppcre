@@ -28,6 +28,7 @@
 (in-package :user)
 
 (require "xl-ppcre/version")
+(require "xl-ppcre/api")
 
 (provide "xl-ppcre")
 
