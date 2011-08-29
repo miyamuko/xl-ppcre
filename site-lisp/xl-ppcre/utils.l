@@ -27,6 +27,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "xl-ppcre/package")
+  (require "xl-ppcre/psre-reader")
   )
 
 (in-package :xl-ppcre)
@@ -47,7 +48,7 @@
             var-list)))
 
 (defun make-do-match-body (vars regex target-string result-form start end body)
-  `(do ((#1=#:regex ,regex)
+  `(do ((#1=#:regex (create-scanner ,regex))
         (#2=#:target-string ,target-string)
         (#3=#:start ,start)
         (#4=#:end ,end))
@@ -71,8 +72,11 @@
                    (incf r)
                    (setf start (match-end 0)))
                  r)))
-      (- (count-regex "\\\\(" regex)
-         (count-regex "\\\\(\\?:" regex)))))
+      (let ((regex-src (case (type-of regex)
+                         (regexp (compiled-regexp-source regex))
+                         (t regex))))
+        (- (count-regex "\\\\(" regex-src)
+           (count-regex "\\\\(\\?:" regex-src))))))
 
 (defun make-register-list (n fn)
   (let (r)

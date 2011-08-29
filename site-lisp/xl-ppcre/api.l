@@ -32,7 +32,8 @@
 
 (in-package :xl-ppcre)
 
-(export '(scan
+(export '(create-scanner
+          scan
           scan-to-strings
           register-groups-bind
           do-scans
@@ -46,8 +47,30 @@
           regex-replace-all
           ))
 
+;; cl-ppcre の create-scanner は closure を返すが、
+;; xl-ppcre では Perl 風の正規表現を xyzzy 用の正規表現に変換しコンパイルして返す。
+;; compile-regexp を与えられた場合は引数をそのまま返す。
+;; 正規表現は文字列形式のみをサポートし parse tree 形式はサポートしていない。
+(defun create-scanner (regex
+                       &key case-insensitive-mode multi-line-mode single-line-mode
+                       extended-mode destructive)
+  (values
+   (case (type-of regex)
+     (regexp
+      regex)
+     ((simple-string string)
+      ;; (compile-regexp "") => nil
+      (or (compile-regexp (convert-from-psre regex)
+                          case-insensitive-mode)
+          ""))
+     (t
+      (error 'type-error
+             :datum regex
+             :expected-type '(or regexp string))))
+   nil))
 
 (defun scan (regex target-string &key start end)
+  (setf regex (create-scanner regex))
   (when (string-match regex target-string start end)
     (let ((n (count-register regex)))
       (values
@@ -58,6 +81,7 @@
        ))))
 
 (defun scan-to-strings (regex target-string &key start end sharedp)
+  (setf regex (create-scanner regex))
   (when (string-match regex target-string start end)
     (let ((n (count-register regex)))
       (values
@@ -66,7 +90,7 @@
        ))))
 
 (defmacro register-groups-bind (var-list (regex target-string &key start end sharedp) &body body)
-  `(when (string-match ,regex ,target-string ,start ,end)
+  `(when (string-match (create-scanner ,regex) ,target-string ,start ,end)
      (let (,@(make-register-group-vars var-list))
        ,@body)))
 
@@ -121,6 +145,7 @@
       )))
 
 (defun split (regex target-string &key start end limit with-registers-p omit-unmatched-p sharedp)
+  (setf regex (create-scanner regex))
   (let ((last-match-start 0)
         (last-match-end 0)
         (n (count-register regex))
@@ -168,6 +193,7 @@
 
 (defun regex-replace-all0 (regex target-string replacement
                                  &key limit start end preserve-case simple-calls element-type)
+  (setf regex (create-scanner regex))
   (let ((last-match-end 0)
         (n (count-register regex))
         (c 0)
