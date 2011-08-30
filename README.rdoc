@@ -36,7 +36,21 @@ xl-ppcre は xyzzy から...
 
 === TODO
 
-なし。
+* create-scanner
+  * regex が文字列リテラルや defconstant なら、do-xxx のマクロ展開時に
+    正規表現のコンパイルまでしてしまう
+  * :digit-char などのサポート
+* quote-meta-chars を実装
+* \*allow-quoting* などを互換性のために定義
+* マルチラインモード、シングルラインモード、拡張正規表現の実装
+* regex-replace
+  * 文字列中の後方参照 (\\1) を処理する
+  * replacement が文字列で preserve-case が nil の場合は
+    substitute-string を呼び出すだけにする
+* ppcre-error など、コンディションをちゃんとする
+* ユニコードプロパティ
+* テスト
+* ドキュメント
 
 
 === KNOWN BUGS
