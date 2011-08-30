@@ -59,6 +59,13 @@
      (regexp
       regex)
      ((simple-string string)
+      ;; (?i) を特別に処理する
+      (when (string-match "(\\?i\\(-\\)?)" regex)
+        (unless (zerop (match-beginning 0))
+          (error "~A は文字列の先頭にある場合のみサポートしてます。"
+                 (match-string 0)))
+        (setf regex (subseq regex (match-end 0)))
+        (setf case-insensitive-mode (if (match-string 1) nil t)))
       ;; (compile-regexp "") => nil
       (or (compile-regexp (convert-from-psre regex)
                           case-insensitive-mode)

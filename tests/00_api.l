@@ -380,17 +380,14 @@ frob"))
       (values "FOO bar" nil)
       (regex-replace "fo+" "FOO bar" "frob"))
 
-  #+skip
   (assert-equal
       (values "frob bar" t)
       (regex-replace "(?i)fo+" "FOO bar" "frob"))
 
-  #+skip
   (assert-equal
       (values "FROB bar" t)
       (regex-replace "(?i)fo+" "FOO bar" "frob" :preserve-case t))
 
-  #+skip
   (assert-equal
       (values "Frob bar" t)
       (regex-replace "(?i)fo+" "Foo bar" "frob" :preserve-case t))
@@ -416,7 +413,6 @@ frob"))
   )
 
 (define-test api/regex-replace-all
-  #+skip
   (assert-equal
       (values "frob Frob FROB bar" t)
       (regex-replace-all "(?i)fo+" "foo Fooo FOOOO bar" "frob" :preserve-case t))
