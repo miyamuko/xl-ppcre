@@ -1,3 +1,38 @@
+2011-08-30  MIYAMUKO Katsuyuki
+
+	* (create-scanner): (?i) と (?i-) をサポート
+
+	* (split): バグだらけだったのを直した
+
+	* (make-register-group-vars): 関数が指定されていて
+	マッチしなかった場合にエラーになっていたのを修正
+	(ppcre:do-register-groups (word (#'parse-integer number))
+          ("([a-z]+)|(\\d+)" "foo123")
+          (princ (list word number)))
+
+	* バインド変数名が nil の場合にキャプチャがずれていたのを修正
+	(ppcre:register-groups-bind (nil second third fourth)
+	  ("((a)|(b)|(c))()+" "abababc" :start 6)
+	  (list second third fourth))
+
+	* (tests/00_api.l) テストを追加
+
+2011-08-29  MIYAMUKO Katsuyuki
+
+	* (tests/00_api.l) lisp-unit のテストを追加
+	実行方法
+	- tests/00_api.l を開いて M-x run-tests
+	- M-x run-tests-from して test.xl-ppcre を入力
+
+	* psre-reader.l を取り込んで Perl 風の正規表現をサポート
+	http://github.com/youz/reut/
+
+	* (make-register-group-vars): バインド変数名が nil の場合に
+	キャプチャがずれていたのを修正
+	(ppcre:register-groups-bind (nil second third fourth)
+	  ("((a)|(b)|(c))()+" "abababc" :start 6)
+	  (list second third fourth))
+
 2011-08-27  MIYAMUKO Katsuyuki
 
 	* xl-ppcre 作成開始
