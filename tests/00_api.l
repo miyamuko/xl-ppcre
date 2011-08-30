@@ -29,7 +29,7 @@
 (require "lisp-unit")
 
 (defpackage :test.xl-ppcre
-  (:use :lisp :lisp-unit))
+  (:use :lisp :lisp-unit :xl-ppcre))
 
 (in-package :test.xl-ppcre)
 
@@ -37,102 +37,102 @@
 
 (define-test api/scan
   (assert-error 'type-error
-      (ppcre:scan nil nil))
+      (scan nil nil))
 
   (assert-error 'type-error
-      (ppcre:scan nil ""))
+      (scan nil ""))
 
   (assert-error 'type-error
-      (ppcre:scan "" nil))
+      (scan "" nil))
 
   (assert-equalp
       nil
-      (ppcre:scan "" ""))
+      (scan "" ""))
 
   (assert-equalp
       (values 1 5 #(3) #(4))
-      (ppcre:scan "(a)*b" "xaaabd"))
+      (scan "(a)*b" "xaaabd"))
 
   (assert-equalp
       (values 1 5 #(3) #(4))
-      (ppcre:scan "(a)*b" "xaaabd" :start 1))
+      (scan "(a)*b" "xaaabd" :start 1))
 
   (assert-equalp
       (values 2 5 #(3) #(4))
-      (ppcre:scan "(a)*b" "xaaabd" :start 2))
+      (scan "(a)*b" "xaaabd" :start 2))
 
   (assert-equalp
       nil
-      (ppcre:scan "(a)*b" "xaaabd" :end 4))
+      (scan "(a)*b" "xaaabd" :end 4))
 
   (assert-equalp
       (values 0 4 #(0 2) #(3 3))
-      (let ((s (ppcre:create-scanner "(([a-c])+)x")))
-        (ppcre:scan s "abcxy")))
+      (let ((s (create-scanner "(([a-c])+)x")))
+        (scan s "abcxy")))
 
   (assert-equalp
       (values 0 4 #(0 2) #(3 3))
-      (let ((s (ppcre:create-scanner "(([a-c])+)x" :case-insensitive-mode t)))
-        (ppcre:scan s "ABCXY")))
+      (let ((s (create-scanner "(([a-c])+)x" :case-insensitive-mode t)))
+        (scan s "ABCXY")))
   )
 
 (define-test api/scan-to-strings
   (assert-error 'type-error
-      (ppcre:scan-to-strings nil nil))
+      (scan-to-strings nil nil))
 
   (assert-error 'type-error
-      (ppcre:scan-to-strings nil ""))
+      (scan-to-strings nil ""))
 
   (assert-error 'type-error
-      (ppcre:scan-to-strings "" nil))
+      (scan-to-strings "" nil))
 
   (assert-equalp
       nil
-      (ppcre:scan-to-strings "" ""))
+      (scan-to-strings "" ""))
 
   (assert-equalp
       (values "aaab" #())
-      (ppcre:scan-to-strings "[^b]*b" "aaabd"))
+      (scan-to-strings "[^b]*b" "aaabd"))
 
   (assert-equalp
       (values "aaab" #("a"))
-      (ppcre:scan-to-strings "([^b])*b" "aaabd"))
+      (scan-to-strings "([^b])*b" "aaabd"))
 
   (assert-equalp
       (values "aaab" #("aaa" "a"))
-      (ppcre:scan-to-strings "(([^b])*)b" "aaabd"))
+      (scan-to-strings "(([^b])*)b" "aaabd"))
 
   (assert-equalp
       nil
-      (ppcre:scan-to-strings "(a)*b" "xaaabd" :end 4))
+      (scan-to-strings "(a)*b" "xaaabd" :end 4))
 
   (assert-equalp
       (values "ab" #("a"))
-      (ppcre:scan-to-strings "(a)*b" "xaaabd" :start 3))
+      (scan-to-strings "(a)*b" "xaaabd" :start 3))
   )
 
 (define-test api/register-groups-bind
   (assert-equalp
       (list "c" "a" "b" "c")
-      (ppcre:register-groups-bind (first second third fourth)
+      (register-groups-bind (first second third fourth)
         ("((a)|(b)|(c))+" "abababc" :sharedp t)
         (list first second third fourth)))
 
   (assert-equalp
       (list nil nil "c")
-      (ppcre:register-groups-bind (nil second third fourth)
+      (register-groups-bind (nil second third fourth)
         ("((a)|(b)|(c))()+" "abababc" :start 6)
         (list second third fourth)))
 
   (assert-equalp
       nil
-      (ppcre:register-groups-bind (first)
+      (register-groups-bind (first)
         ("(a|b)+" "accc" :start 1)
         first))
 
   (assert-equalp
       (list "Frank" "Zappa" 1292889600)
-      (ppcre:register-groups-bind (fname lname (#'parse-integer date month year))
+      (register-groups-bind (fname lname (#'parse-integer date month year))
         ("(\\w+)\\s+(\\w+)\\s+(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})" "Frank Zappa 21.12.1940")
         (list fname lname (encode-universal-time 0 0 0 date month year 0))))
   )
