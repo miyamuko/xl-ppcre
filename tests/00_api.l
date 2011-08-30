@@ -50,6 +50,10 @@
       (scan "" ""))
 
   (assert-equalp
+      nil
+      (scan "^a+$" "a+"))
+
+  (assert-equalp
       (values 1 5 #(3) #(4))
       (scan "(a)*b" "xaaabd"))
 
@@ -137,184 +141,236 @@
         (list fname lname (encode-universal-time 0 0 0 date month year 0))))
   )
 
-#|
-(flet ((foo (regex target-string &key (start 0) (end (length target-string)))
-         (let ((sum 0))
-           (do-matches (s e regex target-string nil :start start :end end)
-             (incf sum (- e s)))
-           (/ sum (- end start)))))
-  (and (= 1/3 (foo "a" "abcabcabc"))
-       (= 5/9 (foo "aa|b" "aacabcbbc"))))
-
-(labels ((crossfoot (target-string &key (start 0) (end (length target-string)))
+(define-test api/do-matches
+  (flet ((foo (regex target-string &key (start 0) (end (length target-string)))
            (let ((sum 0))
-             (do-matches-as-strings (m :digit-class
-                                       target-string nil
-                                       :start start :end end)
-               (incf sum (parse-integer m)))
-             (if (< sum 10)
-               sum
-               (crossfoot (format nil "~A" sum))))))
-  (and (zerop (crossfoot "bar"))
-       (= 3 (crossfoot "a3x"))
-       (= 6 (crossfoot "12345"))))
+             (do-matches (s e regex target-string nil :start start :end end)
+               (incf sum (- e s)))
+             (/ sum (- end start)))))
+    (assert-eql 1/3 (foo "a" "abcabcabc"))
+    (assert-eql 5/9 (foo "aa|b" "aacabcbbc"))
+    ))
 
-(let (result)
-  (do-register-groups (first second third fourth)
+#+skip
+(define-test api/do-matches-as-strings
+  (labels ((crossfoot (target-string &key (start 0) (end (length target-string)))
+             (let ((sum 0))
+               (do-matches-as-strings (m :digit-class
+                                         target-string nil
+                                         :start start :end end)
+                 (incf sum (parse-integer m)))
+               (if (< sum 10)
+                   sum
+                 (crossfoot (format nil "~A" sum))))))
+    (assert-eql 0 (crossfoot "bar"))
+    (assert-eql 3 (crossfoot "a3x"))
+    (assert-eql 6 (crossfoot "12345"))
+    )
+  )
+
+(define-test api/do-register-groups
+  (let (result)
+    (do-register-groups (first second third fourth)
       ("((a)|(b)|(c))" "abababc" nil :start 2 :sharedp t)
-    (push (list first second third fourth) result))
-  (equal (nreverse result)
-         '(("a" "a" nil nil)
-           ("b" nil "b" nil)
-           ("a" "a" nil nil)
-           ("b" nil "b" nil)
-           ("c" nil nil "c"))))
-
-(let (result)
-  (do-register-groups ((#'parse-integer n) (#'intern sign) whitespace)
+      (push (list first second third fourth) result))
+    (assert-equal
+        (nreverse result)
+        '(("a" "a" nil nil)
+          ("b" nil "b" nil)
+          ("a" "a" nil nil)
+          ("b" nil "b" nil)
+          ("c" nil nil "c"))))
+  (let (result)
+    (do-register-groups ((#'parse-integer n) (#'intern sign) whitespace)
       ("(\\d+)|(\\+|-|\\*|/)|(\\s+)" "12*15 - 42/3")
-    (unless whitespace
-      (push (or n sign) result)))
-  (equal (nreverse result)
-         '(12 * 15 - 42 / 3)))
+      (unless whitespace
+        (push (or n sign) result)))
+    (assert-equal
+        (nreverse result)
+        '(12 * 15 - 42 / 3)))
+  )
 
-(equal (all-matches "a" "foo bar baz")
-       (list 5 6 9 10))
+(define-test api/all-matches
+  (assert-equal
+      (list 5 6 9 10)
+      (all-matches "a" "foo bar baz"))
+  (assert-equal
+      (list 0 3 3 3 4 7 7 7 8 11 11 11)
+      (all-matches "\\w*" "foo bar baz"))
+  )
 
-(equal (all-matches "\\w*" "foo bar baz")
-       (list 0 3 3 3 4 7 7 7 8 11 11 11))
+(define-test api/all-matches-as-strings
+  (assert-equal
+      (list "a" "a")
+      (all-matches-as-strings "a" "foo bar baz"))
+  (assert-equal (list "foo" "" "bar" "" "baz" "")
+      (all-matches-as-strings "\\w*" "foo bar baz"))
+  )
 
-(equal (all-matches-as-strings "a" "foo bar baz")
-       (list "a" "a"))
+(define-test api/split
+  (assert-equal
+      '("foo" "bar" "baz" "frob")
+      (split "\\s+" "foo   bar baz
+frob"))
 
-(equal (all-matches-as-strings "\\w*" "foo bar baz")
-       (list "foo" "" "bar" "" "baz" ""))
+  (assert-equal
+      '("f" "o" "o" "b" "a" "r" "b" "a" "z")
+      (split "\\s*" "foo bar   baz"))
 
-(equal (split "\\s+" "foo   bar baz
-frob")
-       '("foo" "bar" "baz" "frob"))
+  (assert-equal
+      '("foo" "bar" "baz")
+      (split "(\\s+)" "foo bar   baz"))
 
-(equal (split "\\s*" "foo bar   baz")
-       '("f" "o" "o" "b" "a" "r" "b" "a" "z"))
+  (assert-equal
+      '("foo" " " "bar" "   " "baz")
+      (split "(\\s+)" "foo bar   baz" :with-registers-p t))
 
-(equal (split "(\\s+)" "foo bar   baz")
-       '("foo" "bar" "baz"))
+  (assert-equal
+      '("foo" " " "" "bar" " " "  " "baz")
+      (split "(\\s)(\\s*)" "foo bar   baz" :with-registers-p t))
 
-(equal (split "(\\s+)" "foo bar   baz" :with-registers-p t)
-       '("foo" " " "bar" "   " "baz"))
+  (assert-equal
+      '("foo" "," nil "bar" nil ";" "baz")
+      (split "(,)|(;)" "foo,bar;baz" :with-registers-p t))
 
-(equal (split "(\\s)(\\s*)" "foo bar   baz" :with-registers-p t)
-       '("foo" " " "" "bar" " " "  " "baz"))
+  (assert-equal
+      '("foo" "," "bar" ";" "baz")
+      (split "(,)|(;)" "foo,bar;baz" :with-registers-p t :omit-unmatched-p t))
 
-(equal (split "(,)|(;)" "foo,bar;baz" :with-registers-p t)
-       '("foo" "," nil "bar" nil ";" "baz"))
+  (assert-equal
+      '("a" "b" "c" "d" "e" "f" "g")
+      (split ":" "a:b:c:d:e:f:g::"))
 
-(equal (split "(,)|(;)" "foo,bar;baz" :with-registers-p t :omit-unmatched-p t)
-       '("foo" "," "bar" ";" "baz"))
+  (assert-equal
+      '("a:b:c:d:e:f:g::")
+      (split ":" "a:b:c:d:e:f:g::" :limit 1))
 
-(equal (split ":" "a:b:c:d:e:f:g::")
-       '("a" "b" "c" "d" "e" "f" "g"))
+  (assert-equal
+      '("a" "b:c:d:e:f:g::")
+      (split ":" "a:b:c:d:e:f:g::" :limit 2))
 
-(equal (split ":" "a:b:c:d:e:f:g::" :limit 1)
-       '("a:b:c:d:e:f:g::"))
+  (assert-equal
+      '("a" "b" "c:d:e:f:g::")
+      (split ":" "a:b:c:d:e:f:g::" :limit 3))
 
-(equal (split ":" "a:b:c:d:e:f:g::" :limit 2)
-       '("a" "b:c:d:e:f:g::"))
+  (assert-equal
+      '("a" "b" "c" "d" "e" "f" "g" "" "")
+      (split ":" "a:b:c:d:e:f:g::" :limit 1000))
+  )
 
-(equal (split ":" "a:b:c:d:e:f:g::" :limit 3)
-       '("a" "b" "c:d:e:f:g::"))
+(define-test api/regex-replace
+  (assert-equal
+      (values "frob bar" t)
+      (regex-replace "fo+" "foo bar" "frob"))
 
-(equal (split ":" "a:b:c:d:e:f:g::" :limit 1000)
-       '("a" "b" "c" "d" "e" "f" "g" "" ""))
+  (assert-equal
+      (values "FOO bar" nil)
+      (regex-replace "fo+" "FOO bar" "frob"))
 
-(equal (multiple-value-list (regex-replace "fo+" "foo bar" "frob"))
-       (list "frob bar" t))
+  #+skip
+  (assert-equal
+      (values "frob bar" t)
+      (regex-replace "(?i)fo+" "FOO bar" "frob"))
 
-(equal (multiple-value-list (regex-replace "fo+" "FOO bar" "frob"))
-       (list "FOO bar" nil))
+  #+skip
+  (assert-equal
+      (values "FROB bar" t)
+      (regex-replace "(?i)fo+" "FOO bar" "frob" :preserve-case t))
 
-(equal (multiple-value-list (regex-replace "(?i)fo+" "FOO bar" "frob"))
-       (list "frob bar" t))
+  #+skip
+  (assert-equal
+      (values "Frob bar" t)
+      (regex-replace "(?i)fo+" "Foo bar" "frob" :preserve-case t))
 
-(equal (multiple-value-list (regex-replace "(?i)fo+" "FOO bar" "frob" :preserve-case t))
-       (list "FROB bar" t))
+  #+skip
+  (assert-equal
+      (values "foo [frob (was 'bar' between 'foo ' and ' baz')] baz" t)
+      (regex-replace "bar" "foo bar baz" "[frob (was '\\&' between '\\`' and '\\'')]"))
 
-(equal (multiple-value-list (regex-replace "(?i)fo+" "Foo bar" "frob" :preserve-case t))
-       (list "Frob bar" t))
+  #+skip
+  (assert-equal
+      (values "foo [frob (was 'bar' between 'foo ' and ' baz')] baz" t)
+      (regex-replace "bar" "foo bar baz"
+                     '("[frob (was '" :match "' between '" :before-match "' and '" :after-match "')]")))
 
-(equal (multiple-value-list (regex-replace "bar" "foo bar baz" "[frob (was '\\&' between '\\`' and '\\'')]"))
-       (list "foo [frob (was 'bar' between 'foo ' and ' baz')] baz" t))
+  (assert-equal
+      (values "benevolent [be.nev.o.lent]: adj. generous, kind" t)
+      (regex-replace "(be)(nev)(o)(lent)"
+                     "benevolent: adj. generous, kind"
+                     #'(lambda (match &rest registers)
+                         (format nil "~A [~{~A~^.~}]" match registers))
+                     :simple-calls t))
+  )
 
-(equal (multiple-value-list
-        (regex-replace "bar" "foo bar baz"
-                       '("[frob (was '" :match "' between '" :before-match "' and '" :after-match "')]")))
-       (list "foo [frob (was 'bar' between 'foo ' and ' baz')] baz" t))
+(define-test api/regex-replace-all
+  #+skip
+  (assert-equal
+      (values "frob Frob FROB bar" t)
+      (regex-replace-all "(?i)fo+" "foo Fooo FOOOO bar" "frob" :preserve-case t))
 
-(equal (multiple-value-list (regex-replace "(be)(nev)(o)(lent)"
-                                           "benevolent: adj. generous, kind"
-                                           (lambda (match &rest registers)
-                                             (format nil "~A [~{~A~^.~}]" match registers))
-                                           :simple-calls t))
-       (list "benevolent [be.nev.o.lent]: adj. generous, kind" t))
+  #+skip
+  (assert-equal
+      "froob Frooob FROOOOB bar"
+      (regex-replace-all "(?i)f(o+)" "foo Fooo FOOOO bar" "fr\\1b" :preserve-case t))
 
-(equal (multiple-value-list (regex-replace-all "(?i)fo+" "foo Fooo FOOOO bar" "frob" :preserve-case t))
-       (list "frob Frob FROB bar" t))
+  (let ((qp-regex (create-scanner "[^\\x20-\\x7f]")))
+    (flet ((encode-quoted-printable (string)
+             "Converts 8-bit string to quoted-printable representation."
+             ;; won't work for Corman Lisp because non-ASCII characters aren't 8-bit there
+             (flet ((convert (target-string start end match-start match-end reg-starts reg-ends)
+                      (declare (ignore start end match-end reg-starts reg-ends))
+                      (format nil "=~2,'0x" (char-code (char target-string match-start)))))
+               (regex-replace-all qp-regex string #'convert))))
+      (assert-equal
+          (values "=82a0=82a2=82a4abc=8341=8343=8345ABC" t)
+          (encode-quoted-printable "‚ ‚¢‚¤abcƒAƒCƒEABC"))))
 
-(string= (regex-replace-all "(?i)f(o+)" "foo Fooo FOOOO bar" "fr\\1b" :preserve-case t)
-         "froob Frooob FROOOOB bar")
+  (let ((url-regex (create-scanner "[^a-zA-Z0-9_\\-.]")))
+    (flet ((url-encode (string)
+             "URL-encodes a string."
+             ;; won't work for Corman Lisp because non-ASCII characters aren't 8-bit there
+             (flet ((convert (target-string start end match-start match-end reg-starts reg-ends)
+                      (declare (ignore start end match-end reg-starts reg-ends))
+                      (format nil "%~2,'0x" (char-code (char target-string match-start)))))
+               (regex-replace-all url-regex string #'convert))))
+      (assert-equal
+          (values "%82a0%82a2%82a4abc%8341%8343%8345ABC" t)
+          (url-encode "‚ ‚¢‚¤abcƒAƒCƒEABC"))))
 
-(let ((qp-regex (create-scanner "[\\x80-\\xff]")))
-  (flet ((encode-quoted-printable (string)
-           "Converts 8-bit string to quoted-printable representation."
-           ;; won't work for Corman Lisp because non-ASCII characters aren't 8-bit there
-           (flet ((convert (target-string start end match-start match-end reg-starts reg-ends)
-                    (declare (ignore start end match-end reg-starts reg-ends))
-                    (format nil "=~2,'0x" (char-code (char target-string match-start)))))
-             (regex-replace-all qp-regex string #'convert))))
-    (string= (encode-quoted-printable "Fête Sørensen naïve Hühner Straße")
-             "F=EAte S=F8rensen na=EFve H=FChner Stra=DFe")))
+  (flet ((how-many (target-string start end match-start match-end reg-starts reg-ends)
+           (declare (ignore target-string start end match-start match-end))
+           (format nil "~A" (- (svref reg-ends 0)
+                               (svref reg-starts 0)))))
+    (assert-equal
+        "foo[3 dots]bar[5 dots][2 dots]baz[4 dots]frob"
+        (regex-replace-all "{(.+?)}"
+                           "foo{...}bar{.....}{..}baz{....}frob"
+                           (list "[" #'how-many " dots]"))))
 
-(let ((url-regex (create-scanner "[^a-zA-Z0-9_\\-.]")))
-  (flet ((url-encode (string)
-           "URL-encodes a string."
-           ;; won't work for Corman Lisp because non-ASCII characters aren't 8-bit there
-           (flet ((convert (target-string start end match-start match-end reg-starts reg-ends)
-                    (declare (ignore start end match-end reg-starts reg-ends))
-                    (format nil "%~2,'0x" (char-code (char target-string match-start)))))
-             (regex-replace-all url-regex string #'convert))))
-    (string= (url-encode "Fête Sørensen naïve Hühner Straße")
-             "F%EAte%20S%F8rensen%20na%EFve%20H%FChner%20Stra%DFe")))
-
-(flet ((how-many (target-string start end match-start match-end reg-starts reg-ends)
-         (declare (ignore target-string start end match-start match-end))
-         (format nil "~A" (- (svref reg-ends 0)
-                             (svref reg-starts 0)))))
-  (string= (regex-replace-all "{(.+?)}"
-                              "foo{...}bar{.....}{..}baz{....}frob"
-                              (list "[" #'how-many " dots]"))
-           "foo[3 dots]bar[5 dots][2 dots]baz[4 dots]frob"))
-
-(let ((qp-regex (create-scanner "[\\x80-\\xff]")))
-  (flet ((encode-quoted-printable (string)
-           "Converts 8-bit string to quoted-printable representation.
+  (let ((qp-regex (create-scanner "[^\\x20-\\x7f]")))
+    (flet ((encode-quoted-printable (string)
+             "Converts 8-bit string to quoted-printable representation.
 Version using SIMPLE-CALLS keyword argument."
-           ;; ;; won't work for Corman Lisp because non-ASCII characters aren't 8-bit there
-           (flet ((convert (match)
-                    (format nil "=~2,'0x" (char-code (char match 0)))))
-             (regex-replace-all qp-regex string #'convert
-                                :simple-calls t))))
-    (string= (encode-quoted-printable "Fête Sørensen naïve Hühner Straße")
-             "F=EAte S=F8rensen na=EFve H=FChner Stra=DFe")))
+             ;; ;; won't work for Corman Lisp because non-ASCII characters aren't 8-bit there
+             (flet ((convert (match)
+                      (format nil "=~2,'0x" (char-code (char match 0)))))
+               (regex-replace-all qp-regex string #'convert
+                                  :simple-calls t))))
+      (assert-equal
+          (values "=82a0=82a2=82a4abc=8341=8343=8345ABC" t)
+          (encode-quoted-printable "‚ ‚¢‚¤abcƒAƒCƒEABC"))))
 
-(flet ((how-many (match first-register)
-         (declare (ignore match))
-         (format nil "~A" (length first-register))))
-  (string= (regex-replace-all "{(.+?)}"
-                              "foo{...}bar{.....}{..}baz{....}frob"
-                              (list "[" #'how-many " dots]")
-                              :simple-calls t)
-           "foo[3 dots]bar[5 dots][2 dots]baz[4 dots]frob"))
-
+  (flet ((how-many (match first-register)
+           (declare (ignore match))
+           (format nil "~A" (length first-register))))
+    (assert-equal
+        "foo[3 dots]bar[5 dots][2 dots]baz[4 dots]frob"
+        (regex-replace-all "{(.+?)}"
+                           "foo{...}bar{.....}{..}baz{....}frob"
+                           (list "[" #'how-many " dots]")
+                           :simple-calls t)))
+  )
+#|
 (flet ((my-repetition (char min)
          `(:greedy-repetition ,min nil ,char)))
   (setf (parse-tree-synonym 'a*) (my-repetition #\a 0)
@@ -327,8 +383,6 @@ Version using SIMPLE-CALLS keyword argument."
                (list 0 0 0 nil nil)))
     (setf (parse-tree-synonym 'a*) nil
           (parse-tree-synonym 'b+) nil)))
-
-(null (scan "^a+$" "a+"))
 
 (let ((*allow-quoting* t))
   ;;we use CREATE-SCANNER because of Lisps like SBCL that don't have an interpreter
