@@ -145,6 +145,39 @@
       )))
 
 (defun split (regex target-string &key start end limit with-registers-p omit-unmatched-p sharedp)
+  ;; 正規表現が空の場合、マッチしないので特別に処理する
+  ;; (string-match "" "hoge") ;=> nil
+  (if (string= regex "")
+      (split-by-empty target-string
+                      :start start :end end :limit limit)
+    (split-by-regex regex target-string
+                    :start start :end end :limit limit
+                    :with-registers-p with-registers-p
+                    :omit-unmatched-p omit-unmatched-p)))
+
+(defun split-by-empty (target-string &key start end limit)
+  (when (and limit (zerop limit))
+    (setf limit nil))
+  (when (or start end)
+    (setf target-string (subseq target-string (or start 0) end)))
+  (flet ((split-each (str)
+           (mapcar #'string (concatenate 'list str))))
+    (case limit
+      ((nil)
+       (split-each target-string))
+      (1
+       ;; limit=1 は分割する必要なし
+       ;; ここだけ sharedp が有効なのは気持ち悪いので常にコピーして返す
+       (list (copy-seq target-string)))
+      (t
+       (let* ((maxlen (length target-string))
+              (n (min maxlen (- limit 1))))
+         (nconc
+          (split-each (subseq target-string 0 n))
+          (list (subseq target-string n)))))
+      )))
+
+(defun split-by-regex (regex target-string &key start end limit with-registers-p omit-unmatched-p)
   (setf regex (create-scanner regex))
   (let ((last-match-start 0)
         (last-match-end 0)
@@ -157,11 +190,10 @@
                            regex target-string
                            nil
                            :start start :end end)
-      (unless (and (= match-start match-end)
-                   (= match-start last-match-end))
+      (unless (= match-start match-end last-match-end)
+        (incf c)
         (when (and limit (<= limit c))
           (return))
-        (incf c)
         (push (subseq target-string last-match-end match-start) r)
         (when with-registers-p
           (dolist (reg (make-register-list n #'match-string))
@@ -170,8 +202,11 @@
         (setf last-match-start match-start
               last-match-end match-end)
         ))
-    (when (or limit (/= last-match-start last-match-end))
-      (push (subseq target-string last-match-end) r))
+    (push (subseq target-string last-match-end) r)
+    ;; limit が指定されていないときは最後の "" は削除する
+    (unless limit
+      (while (string= "" (car r))
+        (pop r)))
     (nreverse r)))
 
 (defun regex-replace (regex target-string replacement

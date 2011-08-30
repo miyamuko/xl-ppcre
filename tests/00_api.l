@@ -256,6 +256,119 @@ frob"))
   (assert-equal
       '("a" "b" "c" "d" "e" "f" "g" "" "")
       (split ":" "a:b:c:d:e:f:g::" :limit 1000))
+
+  (assert-equal
+      '("" "a" "" "b" "" "" "c")
+      (split "," ",a,,b,,,c,,,,"))
+
+  (assert-equal
+      '("" "a" "" "b" "" "" "c" "" "" "" "")
+      (split "," ",a,,b,,,c,,,," :limit 1000))
+
+  (assert-equal
+      '(",a,,b,,,c,,,,")
+      (split "," ",a,,b,,,c,,,," :limit -1))
+
+  (assert-equal
+      '("a" "b" "c")
+      (split ".*?" "abc"))
+
+  (assert-equal
+      '("a" "b" "c" "")
+      (split ".*?" "abc" :limit 1000))
+
+  (assert-equal
+      nil
+      (split "." "abc"))
+  )
+
+(define-test api/split-with-start
+  (assert-equal
+      '("a" "b" "c")
+      (split "" "abc" :start 0))
+
+  (assert-equal
+      '("b" "c")
+      (split "" "abc" :start 1))
+
+  (assert-equal
+      '("c")
+      (split "" "abc" :start 2))
+
+  (assert-equal
+      nil
+      (split "" "abc" :start 3))
+  )
+
+(define-test api/split-with-end
+  (assert-equal
+      nil
+      (split "" "abc" :end 0))
+
+  (assert-equal
+      '("a")
+      (split "" "abc" :end 1))
+
+  (assert-equal
+      '("a" "b")
+      (split "" "abc" :end 2))
+
+  (assert-equal
+      '("a" "b" "c")
+      (split "" "abc" :end 3))
+
+  (assert-error 'range-error
+      (split "" "abc" :end 4))
+
+  (assert-equal
+      '("c" "d")
+      (split "" "abcdefg" :start 2 :end 4))
+  )
+
+(define-test api/split-with-limit
+  (assert-equal
+      '("a" "b" "c")
+      (split "" "abc" :limit nil))
+
+  (assert-equal
+      '("a" "b" "c")
+      (split "" "abc" :limit 0))
+
+  (assert-equal
+      '("abc")
+      (split "" "abc" :limit 1))
+
+  (assert-equal
+      '("a" "bc")
+      (split "" "abc" :limit 2))
+
+  (assert-equal
+      '("a" "b" "c")
+      (split "" "abc" :limit 3))
+
+  (assert-equal
+      '("a" "b" "c" "")
+      (split "" "abc" :limit 4))
+
+  (assert-equal
+      '("a" "b" "c" "")
+      (split "" "abc" :limit 5))
+
+  (assert-equal
+      '("b" "c" "def")
+      (split "" "abcdefg" :start 1 :end 6 :limit 3))
+
+  (assert-equal
+      '("b" "c")
+      (split "" "abc" :start 1 :limit 2))
+
+  (assert-equal
+      '("c" "")
+      (split "" "abc" :start 2 :limit 2))
+
+  (assert-equal
+      '("c" "")
+      (split "" "abc" :start 2 :limit 3))
   )
 
 (define-test api/regex-replace
