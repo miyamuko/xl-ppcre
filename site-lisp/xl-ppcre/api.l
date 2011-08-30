@@ -258,7 +258,7 @@
                                  (symbolp rep))
                              (if simple-calls
                                  (apply rep match-var reg-vars)
-                               (apply rep target-string start end match-start match-end reg-starts reg-ends)))
+                               (funcall rep target-string start end match-start match-end reg-starts reg-ends)))
                             ((integerp rep)
                              (nth rep reg-vars))
                             (t
