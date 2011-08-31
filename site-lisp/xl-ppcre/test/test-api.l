@@ -29,11 +29,48 @@
 (require "lisp-unit")
 
 (defpackage :xl-ppcre.test
-  (:use :lisp :lisp-unit :xl-ppcre))
+  (:use :lisp :editor :lisp-unit :xl-ppcre))
 
 (in-package :xl-ppcre.test)
 
 (remove-all-tests :xl-ppcre.test)
+
+(define-test api/create-scanner
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "foo")))
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "foo" :case-insensitive-mode nil)))
+  (assert-true
+      (compiled-regexp-case-fold-p
+       (create-scanner "foo" :case-insensitive-mode t)))
+
+  (assert-true
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?i)foo")))
+  (assert-true
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?i)foo" :case-insensitive-mode nil)))
+  (assert-true
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?i)foo" :case-insensitive-mode t)))
+
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?i-)foo")))
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?i-)foo" :case-insensitive-mode nil)))
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?i-)foo" :case-insensitive-mode t)))
+
+  (assert-error 'simple-error
+      (create-scanner "bar(?i-)foo"))
+  (assert-error 'simple-error
+      (create-scanner "bar\n(?i-)foo"))
+  )
 
 (define-test api/scan
   (assert-error 'type-error
