@@ -1,3 +1,8 @@
+2011-08-31  MIYAMUKO Katsuyuki
+
+	* テストファイル置き場を変更
+	tests => site-lisp/xl-ppcre/test
+
 2011-08-30  MIYAMUKO Katsuyuki
 
 	* (create-scanner): (?i) と (?i-) をサポート

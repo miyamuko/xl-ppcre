@@ -1,6 +1,6 @@
-; -*- mode: lisp; package: test.xl-ppcre; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-ppcre.test; encoding: shift_jis -*-
 
-;;; C:/Tools/xyzzy/workspace/beta/xl-ppcre/test/00_api.l
+;;; xl-ppcre/test/test-api.l
 ;;
 ;; Copyright (c) 2011 MIYAMUKO Katsuyuki.
 ;;
@@ -28,12 +28,12 @@
 (require "xl-ppcre")
 (require "lisp-unit")
 
-(defpackage :test.xl-ppcre
+(defpackage :xl-ppcre.test
   (:use :lisp :lisp-unit :xl-ppcre))
 
-(in-package :test.xl-ppcre)
+(in-package :xl-ppcre.test)
 
-(remove-all-tests :test.xl-ppcre)
+(remove-all-tests :xl-ppcre.test)
 
 (define-test api/scan
   (assert-error 'type-error
