@@ -429,7 +429,6 @@ frob"))
       (values "Frob bar" t)
       (regex-replace "(?i)fo+" "Foo bar" "frob" :preserve-case t))
 
-  #+skip
   (assert-equal
       (values "foo [frob (was 'bar' between 'foo ' and ' baz')] baz" t)
       (regex-replace "bar" "foo bar baz" "[frob (was '\\&' between '\\`' and '\\'')]"))
@@ -454,10 +453,17 @@ frob"))
       (values "frob Frob FROB bar" t)
       (regex-replace-all "(?i)fo+" "foo Fooo FOOOO bar" "frob" :preserve-case t))
 
-  #+skip
   (assert-equal
       "froob Frooob FROOOOB bar"
       (regex-replace-all "(?i)f(o+)" "foo Fooo FOOOO bar" "fr\\1b" :preserve-case t))
+
+  (assert-equal
+      "2011”N09ŒŽ03“ú (2011-09-03)"
+      (regex-replace-all "(\\d+)-(\\d+)-(\\d+)" "2011-09-03" "\\1”N\\2ŒŽ\\3“ú (\\&)"))
+
+  (assert-equal
+      "--"
+      (regex-replace-all "(\\d+)-(\\d+)-(\\d+)" "2011-09-03" "\\4-\\5-\\6"))
 
   (let ((qp-regex (create-scanner "[^\\x20-\\x7f]")))
     (flet ((encode-quoted-printable (string)

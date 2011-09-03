@@ -100,6 +100,30 @@
   (and (upper-case-p (char str 0))
        (downcase-string-p (subseq str 1))))
 
+(defun replace-match-string (str target-string match-var reg-vars match-start match-end)
+  (let ((start 0)
+        r)
+    (while (string-match "\\\\\\([0-9&`']\\)" str start)
+      (let ((ref (match-string 1))
+            (beg (match-beginning 0))
+            (end (match-end 0)))
+        (push (subseq str start beg) r)
+        (push (cond ((string= "&" ref)
+                     match-var)
+                    ((string= "`" ref)
+                     (subseq target-string 0 match-start))
+                    ((string= "'" ref)
+                     (subseq target-string match-end))
+                    (t
+                     (nth (- (parse-integer ref) 1) reg-vars)))
+              r)
+        (setf start end)))
+    (if r
+        (progn
+          (push (subseq str start) r)
+          (list->string (nreverse r)))
+      str)))
+
 (defun list->string (lst)
   (format nil "~{~A~}" (remove-if #'null lst)))
 

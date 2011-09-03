@@ -295,7 +295,7 @@
   (list->string
    (mapcar #'(lambda (rep)
                (cond ((stringp rep)
-                      rep)
+                      (replace-match-string rep target-string match-var reg-vars match-start match-end))
                      ((or (functionp rep)
                           (symbolp rep))
                       (if simple-calls

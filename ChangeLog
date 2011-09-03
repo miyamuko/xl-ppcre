@@ -1,3 +1,7 @@
+2011-09-03  MIYAMUKO Katsuyuki
+
+	* (apply-replacement): \& \' \` \1 - \9 をサポート
+
 2011-08-31  MIYAMUKO Katsuyuki
 
 	* テストファイル置き場を変更
