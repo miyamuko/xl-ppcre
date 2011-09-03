@@ -1,5 +1,7 @@
 2011-09-03  MIYAMUKO Katsuyuki
 
+	* (quote-meta-chars): 実装した
+
 	* (apply-replacement): \& \' \` \1 - \9 をサポート
 
 2011-08-31  MIYAMUKO Katsuyuki

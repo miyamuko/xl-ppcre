@@ -40,7 +40,6 @@ xl-ppcre は xyzzy から...
   * regex が文字列リテラルや defconstant なら、do-xxx のマクロ展開時に
     正規表現のコンパイルまでしてしまう
   * :digit-char などのサポート
-* quote-meta-chars を実装
 * \*allow-quoting* などを互換性のために定義
 * マルチラインモード、シングルラインモード、拡張正規表現の実装
 * regex-replace

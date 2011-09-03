@@ -45,6 +45,7 @@
           split
           regex-replace
           regex-replace-all
+          quote-meta-chars
           ))
 
 ;; cl-ppcre ‚Ì create-scanner ‚Í closure ‚ğ•Ô‚·‚ªA
@@ -306,6 +307,10 @@
                      (t
                       (error "Invalid replacement: ~S" rep))))
            replacement)))
+
+(defun quote-meta-chars (string)
+  (identity
+   (substitute-string string "\\([^a-zA-Z0-9_]\\)" "\\\\\\1")))
 
 
 #+xyzzy

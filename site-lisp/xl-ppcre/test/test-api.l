@@ -522,6 +522,23 @@ Version using SIMPLE-CALLS keyword argument."
                            (list "[" #'how-many " dots]")
                            :simple-calls t)))
   )
+
+(define-test api/quote-meta-chars
+  (assert-equal
+      "\\[a\\-z\\]\\*"
+      (quote-meta-chars "[a-z]*"))
+  (assert-equal
+      "\\!\\\"\\#\\$\\%\\&\\'\\(\\)\\=\\~\\|\\`\\{\\+\\*\\}\\<\\>\\?_"
+      (quote-meta-chars "!\"#$%&'()=~|`{+*}<>?_"))
+  (assert-equal
+      "1234567890\\-\\^\\\\\\@\\[\\;\\:\\]\\,\\.\\/\\\\"
+      (quote-meta-chars "1234567890-^\\@[;:],./\\"))
+  (assert-equal
+      "1234567890abcABC_"
+      (quote-meta-chars "1234567890abcABC_"))
+  )
+
+
 #|
 (flet ((my-repetition (char min)
          `(:greedy-repetition ,min nil ,char)))
@@ -594,8 +611,6 @@ Version using SIMPLE-CALLS keyword argument."
   ;; "aa" will be matched only when forced by adding "$" at the end
   (equalp (multiple-value-list (scan (create-scanner "^(?<reg>a)(?<reg>)(\\k<reg>)$") "aa"))
           (list 0 2 #(0 1 1) #(1 1 2))))
-
-(string= (quote-meta-chars "[a-z]*") "\\[a\\-z\\]\\*")
 
 (string= (handler-case
              (create-scanner "foo**x")
