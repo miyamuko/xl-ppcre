@@ -1,5 +1,8 @@
 2011-09-03  MIYAMUKO Katsuyuki
 
+	* (regex-replace-all): replacement が単純な文字列なら
+	substitute-string を呼ぶだけにして高速化
+
 	* (quote-meta-chars): 実装した
 
 	* (apply-replacement): \& \' \` \1 - \9 をサポート

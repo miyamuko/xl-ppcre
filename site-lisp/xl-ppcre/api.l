@@ -236,6 +236,25 @@
 
 (defun regex-replace-all0 (regex target-string replacement
                                  &key limit start end preserve-case simple-calls element-type)
+  (if (and (stringp replacement)
+           (not preserve-case)
+           (not (string-match "\\\\\\([&`']\\)" replacement))) ; \& \' \` ‚Í substitute-string ‚Íˆ—‚Å‚«‚È‚¢
+      (regex-replace-all-simple regex target-string replacement
+                                :start start :end end :limit limit)
+    (regex-replace-all-complex regex target-string replacement
+                               :start start :end end
+                               :preserve-case preserve-case
+                               :simple-calls simple-calls
+                               :element-type element-type)))
+
+(defun regex-replace-all-simple (regex target-string replacement
+                                       &key limit start end)
+  (multiple-value-bind (str n)
+      (substitute-string target-string regex replacement :count limit :start start :end end)
+    (values str (< 0 n))))
+
+(defun regex-replace-all-complex (regex target-string replacement
+                                        &key limit start end preserve-case simple-calls element-type)
   (setf regex (create-scanner regex))
   (let ((last-match-end 0)
         (n (count-register regex))
