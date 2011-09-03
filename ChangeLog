@@ -1,5 +1,10 @@
 2011-09-03  MIYAMUKO Katsuyuki
 
+	* (create-scanner): 不正な正規表現の場合は ppcre-syntax-error
+	を投げるようにした
+
+	* (ppcre-error, ppcre-invocation-error, ppcre-syntax-error): 追加
+
 	* cl-ppcre との互換性のために以下の変数を定義
 	- *property-resolver*
 	- *regex-char-code-limit*

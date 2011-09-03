@@ -28,6 +28,7 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "xl-ppcre/package")
   (require "xl-ppcre/utils")
+  (require "xl-ppcre/conditions")
   )
 
 (in-package :xl-ppcre)
@@ -63,14 +64,18 @@
       ;; (?i) を特別に処理する
       (when (string-match "(\\?i\\(-\\)?)" regex)
         (unless (zerop (match-beginning 0))
-          (error "~A は文字列の先頭にある場合のみサポートしてます。"
-                 (match-string 0)))
+          (raise-syntax-error regex nil
+                              "~A は文字列の先頭にある場合のみサポートしてます。"
+                              (match-string 0)))
         (setf regex (subseq regex (match-end 0)))
         (setf case-insensitive-mode (if (match-string 1) nil t)))
       ;; (compile-regexp "") => nil
-      (or (compile-regexp (convert-from-psre regex)
-                          case-insensitive-mode)
-          ""))
+      (handler-case
+          (or (compile-regexp (convert-from-psre regex)
+                              case-insensitive-mode)
+              "")
+        (error (c)
+          (raise-syntax-error regex nil (format nil "~A" c)))))
      (t
       (error 'type-error
              :datum regex
