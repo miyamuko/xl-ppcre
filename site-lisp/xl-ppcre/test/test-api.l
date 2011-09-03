@@ -66,9 +66,9 @@
       (compiled-regexp-case-fold-p
        (create-scanner "(?i-)foo" :case-insensitive-mode t)))
 
-  (assert-error 'simple-error
+  (assert-error 'ppcre-syntax-error
       (create-scanner "bar(?i-)foo"))
-  (assert-error 'simple-error
+  (assert-error 'ppcre-syntax-error
       (create-scanner "bar\n(?i-)foo"))
   )
 
