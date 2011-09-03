@@ -100,6 +100,9 @@
   (and (upper-case-p (char str 0))
        (downcase-string-p (subseq str 1))))
 
+(defun list->string (lst)
+  (format nil "~{~A~}" (remove-if #'null lst)))
+
 
 (provide "xl-ppcre/utils")
 
