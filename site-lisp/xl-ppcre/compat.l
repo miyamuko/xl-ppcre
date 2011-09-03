@@ -1,6 +1,6 @@
-; -*- mode: lisp; package: user; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-ppcre; encoding: shift_jis -*-
 
-;;; xl-ppcre.l
+;;; xl-ppcre/compat.l
 ;;
 ;; Copyright (c) 2011 MIYAMUKO Katsuyuki.
 ;;
@@ -25,12 +25,31 @@
 
 ;;; Code:
 
-(in-package :user)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (require "xl-ppcre/package")
+  )
 
-(require "xl-ppcre/version")
-(require "xl-ppcre/api")
-(require "xl-ppcre/compat")
+(in-package :xl-ppcre)
 
-(provide "xl-ppcre")
+(export '(*property-resolver*
+          *regex-char-code-limit*
+          *use-bmh-matchers*
+          *optimize-char-classes*
+          *allow-quoting*
+          *allow-named-registers*
+          ))
+
+;; cl-ppcre Ç∆ÇÃå›ä∑ê´ÇÃÇΩÇﬂÇæÇØÇ…íËã`
+;; é¿ç€ÇÕã@î\ÇµÇ»Ç¢
+
+(defvar *property-resolver* nil)
+(defvar *regex-char-code-limit*  nil)
+(defvar *use-bmh-matchers*  nil)
+(defvar *optimize-char-classes*  nil)
+(defvar *allow-quoting*  nil)
+(defvar *allow-named-registers*  nil)
+
+
+(provide "xl-ppcre/compat")
 
 ;;; End

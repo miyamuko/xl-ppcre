@@ -1,5 +1,13 @@
 2011-09-03  MIYAMUKO Katsuyuki
 
+	* cl-ppcre との互換性のために以下の変数を定義
+	- *property-resolver*
+	- *regex-char-code-limit*
+	- *use-bmh-matchers*
+	- *optimize-char-classes*
+	- *allow-quoting*
+	- *allow-named-registers*
+
 	* (regex-replace-all): replacement が単純な文字列なら
 	substitute-string を呼ぶだけにして高速化
 
