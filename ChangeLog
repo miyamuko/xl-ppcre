@@ -1,5 +1,7 @@
 2011-09-05  MIYAMUKO Katsuyuki
 
+	* (do-scans): reg-starts, reg-ends が常に nil だった問題を修正
+
 	* conditions.l: バイトコンパイルしたファイルがロードできなかった
 	問題を修正
 

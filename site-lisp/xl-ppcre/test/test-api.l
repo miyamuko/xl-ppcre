@@ -178,6 +178,23 @@
         (list fname lname (encode-universal-time 0 0 0 date month year 0))))
   )
 
+(define-test api/do-scans
+  (assert-equalp
+      :ok
+      (do-scans (match-start match-end reg-starts reg-ends
+                                   "\\d+" "foo bar baz"
+                                   :ok)))
+  (assert-equalp
+      '((0 3 #(0 1) #(1 3))
+        (4 7 #(4 5) #(5 7))
+        (8 11 #(8 9) #(9 11)))
+      (let (result)
+        (do-scans (match-start match-end reg-starts reg-ends
+                                     "(\\w)(\\w+)" "foo bar baz"
+                                     (nreverse result))
+          (push (list match-start match-end reg-starts reg-ends) result))))
+  )
+
 (define-test api/do-matches
   (assert-equalp
       :ok

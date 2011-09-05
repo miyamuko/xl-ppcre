@@ -112,32 +112,36 @@
                                  &key start end)
                     &body body)
   (let ((gn (gensym)))
-    (make-do-match-body `((,gn (count-register ,regex))
-                          (,match-start (match-beginning 0))
-                          (,match-end (match-end 0))
-                          (,reg-starts (make-register-array ,gn #'match-beginning))
-                          (,reg-ends (make-register-array ,gn #'match-end)))
+    (make-do-match-body #'(lambda (re ms me)
+                            `((,gn (count-register ,re))
+                              (,match-start ,ms)
+                              (,match-end ,me)
+                              (,reg-starts (make-register-array ,gn #'match-beginning))
+                              (,reg-ends (make-register-array ,gn #'match-end))))
                         regex target-string result-form start end body)))
 
 (defmacro do-matches ((match-start match-end regex target-string
                                    &optional result-form
                                    &key start end)
                       &body body)
-  (make-do-match-body `((,match-start (match-beginning 0))
-                        (,match-end (match-end 0)))
+  (make-do-match-body #'(lambda (re ms me)
+                          `((,match-start ,ms)
+                            (,match-end ,me)))
                       regex target-string result-form start end body))
 
 (defmacro do-matches-as-strings ((match-var regex target-string
                                             &optional result-form
                                             &key start end sharedp)
                                  &body body)
-  (make-do-match-body `((,match-var (match-string 0)))
+  (make-do-match-body #'(lambda (re ms me)
+                          `((,match-var (match-string 0))))
                       regex target-string result-form start end body))
 
 (defmacro do-register-groups (var-list (regex target-string
                                               &optional result-form &key start end sharedp)
                                        &body body)
-  (make-do-match-body (make-register-group-vars var-list)
+  (make-do-match-body #'(lambda (re ms me)
+                          (make-register-group-vars var-list))
                       regex target-string result-form start end body))
 
 (defun all-matches (regex target-string &key start end)
