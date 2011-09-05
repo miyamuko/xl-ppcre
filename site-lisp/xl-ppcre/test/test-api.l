@@ -74,6 +74,72 @@
       (create-scanner "["))
   (assert-error 'ppcre-syntax-error
       (create-scanner "("))
+
+  (assert-equal
+      (values 0 "foo")
+      (values
+       (string-match (create-scanner "\\Afoo\\z") "foo")
+       (match-string 0)))
+
+  (assert-equal
+      (values nil nil)
+      (values
+       (string-match (create-scanner "\\Afoo\\z") "Afoo\nfoo")
+       (match-string 0)))
+
+  (assert-equal
+      (values 5 "foo")
+      (values
+       (string-match (create-scanner "^foo$") "Afoo\nfoo")
+       (match-string 0)))
+
+  (assert-equal
+      (values 0 "_foo123")
+      (values
+       (string-match (create-scanner "\\w+") "_foo123 _bar")
+       (match-string 0)))
+
+  (assert-equal
+      (values 7 " ")
+      (values
+       (string-match (create-scanner "\\W+") "_foo123 _bar")
+       (match-string 0)))
+
+  (assert-equal
+      (values 4 "123")
+      (values
+       (string-match (create-scanner "\\d+") "_foo123 _bar")
+       (match-string 0)))
+
+  (assert-equal
+      (values 0 "_foo")
+      (values
+       (string-match (create-scanner "\\D+") "_foo123 _bar")
+       (match-string 0)))
+
+  (assert-equal
+      (values 7 " ")
+      (values
+       (string-match (create-scanner "\\s+") "_foo123 _bar")
+       (match-string 0)))
+
+  (assert-equal
+      (values 0 "_foo123")
+      (values
+       (string-match (create-scanner "\\S+") "_foo123 _bar")
+       (match-string 0)))
+
+  (assert-equal
+      (values 0 "_foo123 _bar")
+      (values
+       (string-match (create-scanner "[\\w\\s]+") "_foo123 _bar")
+       (match-string 0)))
+
+  (assert-equal
+      (values 4 "123 ")
+      (values
+       (string-match (create-scanner "[\\d\\s]+") "_foo123 _bar")
+       (match-string 0)))
   )
 
 (define-test api/scan

@@ -1,5 +1,7 @@
 2011-09-05  MIYAMUKO Katsuyuki
 
+	* (convert-from-psre): \A \z \W \w をサポート
+
 	* (convert-from-psre): 不正な正規表現の場合に通知する
 	例外のメッセージを改善
 
