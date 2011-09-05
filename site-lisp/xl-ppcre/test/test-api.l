@@ -70,6 +70,10 @@
       (create-scanner "bar(?-i)foo"))
   (assert-error 'ppcre-syntax-error
       (create-scanner "bar\n(?-i)foo"))
+  (assert-error 'ppcre-syntax-error
+      (create-scanner "["))
+  (assert-error 'ppcre-syntax-error
+      (create-scanner "("))
   )
 
 (define-test api/scan

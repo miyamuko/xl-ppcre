@@ -4,6 +4,7 @@
 ;;
 ;; This file is part of http://github.com/youz/reut/
 ;;
+;; Copyright (C) 2011 MIYAMUKO Katsuyuki.
 ;; Copyright (C) 2009-2010 Yousuke Ushiki
 ;; All rights reserved.
 ;;
@@ -58,7 +59,7 @@
            (let ((code (parse-integer (format nil "~{~A~}" code) :radix 16)))
              (princ (code-char code) s)))
          (escape (c)
-           (unless c (error 'end-of-file))
+           (unless c (error "•s³‚Èƒpƒ^[ƒ“‚Å‚·"))
            (case c
              ((#\( #\) #\{ #\} #\| #\/) (princ c os))
              (#\t (princ #\TAB os))
@@ -74,15 +75,18 @@
              (t (format os "\\~A" c))))
          (char-class ()
            (princ #\[ os)
-           (when (char= #\^ (peek-char nil stream))
-             (princ #1# os))
+           (let ((c (peek-char nil stream nil nil)))
+             (unless c
+               #3=(error "e[f‚É‘Î‰‚·‚ée]f‚ª‚ ‚è‚Ü‚¹‚ñ"))
+             (when (char= #\^ c)
+               (princ #1# os)))
            (format os "~A]"
                    (with-output-to-string (cs)
                      (do ((c #2=(read-char stream nil nil) #2#)
                           (hyphen ""))
                          ((eql c #\]) (princ hyphen cs))
                        (unless c
-                         #3=(error "e[f‚É‘Î‰‚·‚ée]f‚ª‚ ‚è‚Ü‚¹‚ñ" 'simple-error))
+                         #3#)
                        (case c
                          (#\\
                           (let ((e #1#))
