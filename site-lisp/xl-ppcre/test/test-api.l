@@ -179,6 +179,10 @@
   )
 
 (define-test api/do-matches
+  (assert-equalp
+      :ok
+      (do-matches (match-start match-end "\\d+" "foo bar baz"
+                               :ok)))
   (flet ((foo (regex target-string &key (start 0) (end (length target-string)))
            (let ((sum 0))
              (do-matches (s e regex target-string nil :start start :end end)
@@ -186,10 +190,29 @@
              (/ sum (- end start)))))
     (assert-eql 1/3 (foo "a" "abcabcabc"))
     (assert-eql 5/9 (foo "aa|b" "aacabcbbc"))
-    ))
+    )
+  )
 
-#+skip
 (define-test api/do-matches-as-strings
+  (assert-equalp
+      :ok
+      (do-matches-as-strings (match-var "\\d+" "foo bar baz"
+                                        :ok)))
+  (labels ((crossfoot (target-string &key (start 0) (end (length target-string)))
+             (let ((sum 0))
+               (do-matches-as-strings (m "\\d"
+                                         target-string nil
+                                         :start start :end end)
+                 (incf sum (parse-integer m)))
+               (if (< sum 10)
+                   sum
+                 (crossfoot (format nil "~A" sum))))))
+    (assert-eql 0 (crossfoot "bar"))
+    (assert-eql 3 (crossfoot "a3x"))
+    (assert-eql 6 (crossfoot "12345"))
+    )
+
+  #+skip
   (labels ((crossfoot (target-string &key (start 0) (end (length target-string)))
              (let ((sum 0))
                (do-matches-as-strings (m :digit-class
@@ -206,6 +229,12 @@
   )
 
 (define-test api/do-register-groups
+  (assert-equalp
+      :ok
+      (do-register-groups (first second)
+        ("\\d+" "foo bar baz" :ok)
+        ))
+
   (let (result)
     (do-register-groups (first second third fourth)
       ("((a)|(b)|(c))" "abababc" nil :start 2 :sharedp t)
@@ -217,6 +246,7 @@
           ("a" "a" nil nil)
           ("b" nil "b" nil)
           ("c" nil nil "c"))))
+
   (let (result)
     (do-register-groups ((#'parse-integer n) (#'intern sign) whitespace)
       ("(\\d+)|(\\+|-|\\*|/)|(\\s+)" "12*15 - 42/3")
@@ -240,7 +270,8 @@
   (assert-equal
       (list "a" "a")
       (all-matches-as-strings "a" "foo bar baz"))
-  (assert-equal (list "foo" "" "bar" "" "baz" "")
+  (assert-equal
+      (list "foo" "" "bar" "" "baz" "")
       (all-matches-as-strings "\\w*" "foo bar baz"))
   )
 
