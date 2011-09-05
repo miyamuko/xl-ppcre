@@ -62,7 +62,7 @@
       regex)
      ((simple-string string)
       ;; (?i) を特別に処理する
-      (when (string-match "(\\?i\\(-\\)?)" regex)
+      (when (string-match "(\\?\\(-\\)?i)" regex)
         (unless (zerop (match-beginning 0))
           (raise-syntax-error regex nil
                               "~A は文字列の先頭にある場合のみサポートしてます。"

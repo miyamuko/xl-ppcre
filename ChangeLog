@@ -34,7 +34,7 @@
 
 2011-08-30  MIYAMUKO Katsuyuki
 
-	* (create-scanner): (?i) と (?i-) をサポート
+	* (create-scanner): (?i) と (?-i) をサポート
 
 	* (split): バグだらけだったのを直した
 
