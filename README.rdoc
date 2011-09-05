@@ -1,4 +1,4 @@
-== xl-ppcre - blur blur blur
+== xl-ppcre - Portable Perl-compatible regular expressions for xyzzy Lisp
 
 * Home URL: http://miyamuko.s56.xrea.com/xyzzy/xl-ppcre/intro.htm
 * Version: 0.0.1
@@ -7,43 +7,228 @@
 === SYNOPSIS
 
   (require "xl-ppcre")
-  (xl-ppcre)
 
-  blur blur blur ...
+  (ppcre:scan "(a)*b" "xaaabd")
+  ;=> 1
+  ;   5
+  ;   #(3)
+  ;   #(4)
+
+  (ppcre:scan-to-strings "(([^b])*)b" "aaabd")
+  ;=> "aaab"
+  ;   #("aaa" "a")
+
+  (ppcre:register-groups-bind (fname lname (#'parse-integer date month year))
+    ("(\\w+)\\s+(\\w+)\\s+(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})" "Frank Zappa 21.12.1940")
+    (list fname lname (encode-universal-time 0 0 0 date month year 0)))
+  ;=> ("Frank" "Zappa" 1292889600)
+
+  (ppcre:do-scans (match-start match-end reg-starts reg-ends
+                               "(\\w)(\\w+)" "foo bar baz")
+    (format t "~S~%" (list match-start match-end reg-starts reg-ends)))
+  ;=> (0 3 #(0 1) #(1 3))
+  ;   (4 7 #(4 5) #(5 7))
+  ;   (8 11 #(8 9) #(9 11))
+  ;   nil
+
+  (ppcre:do-matches (match-start match-end "\\w+" "foo bar baz")
+    (format t "~S~%" (list match-start match-end)))
+  ;=> (0 3)
+  ;   (4 7)
+  ;   (8 11)
+  ;   nil
+
+  (ppcre:do-matches-as-strings (match-var "\\w+" "foo bar baz")
+    (format t "~S~%" match-var))
+  ;=> "foo"
+  ;   "bar"
+  ;   "baz"
+  ;   nil
+
+  (let (result)
+    (ppcre:do-register-groups ((#'parse-integer n) (#'intern sign) whitespace)
+      ("(\\d+)|(\\+|-|\\*|/)|(\\s+)" "12*15 - 42/3")
+      (unless whitespace
+        (push (or n sign) result)))
+    result)
+  ;=> (3 / 42 - 15 * 12)
+
+  (ppcre:all-matches "\\w+" "foo bar baz")
+  ;=> (0 3 4 7 8 11)
+
+  (ppcre:all-matches-as-strings "\\w*" "foo bar baz")
+  ;=> ("foo" "" "bar" "" "baz" "")
+
+  (ppcre:split "(\\s+)" "foo bar   baz")
+  ;=> ("foo" "bar" "baz")
+
+  (ppcre:regex-replace "(?i)fo+" "Foo bar" "frob" :preserve-case t)
+  ;=> "Frob bar"
+  ;   t
+
+  (ppcre:regex-replace-all "(?i)fo+" "foo Fooo FOOOO bar" "frob" :preserve-case t)
+  ;=> "frob Frob FROB bar"
+  ;   t
 
 
 === DESCRIPTION
 
-xl-ppcre は xyzzy から...
+xl-ppcre は {CL-PPCRE - Portable Perl-compatible regular expressions for Common Lisp}[http://weitz.de/cl-ppcre/]
+を xyzzy に移植したものです。
+
+xl-ppcre は以下の機能を提供しています。
+
+* Perl 互換の正規表現が使えます (一部制限があります)
+* cl-ppcre 互換の API
+
+xl-ppcre は以下の機能は <b>提供していません</b>。
+
+* 肯定先読み、否定先読み、埋め込みコードなど
+  * xl-ppcre は Perl 互換の正規表現を xyzzy 用に変換するのみで、
+    正規表現エンジンは xyzzy 組み込みのものを利用しているためです
+* 正規表現リテラル (リーダーマクロ)
+* replace-string や replace-dialog で Perl 互換の正規表現の利用
+
+xl-ppcre でサポートしている正規表現のメタ文字は以下のとおりです。
+
+  \                     メタキャラクタのエスケープ
+  ^                     行頭にマッチ
+  $                     行末にマッチ
+  .                     改行文字を除く任意の 1 文字にマッチ
+  [...]                 文字クラスのどれか 1 文字にマッチ
+  [^...]                文字クラスの補集合のどれか 1 文字にマッチ
+
+  *                     直前の正規表現の 0 回以上の繰り返しにマッチ (={0,})
+  +                     直前の正規表現の 1 回以上の繰り返しにマッチ (={1,})
+  ?                     直前の正規表現の 0 回か 1 回の繰り返しにマッチ (={0,1})
+  {M,N}                 直前の正規表現の M 回以上 N 回以下の繰り返しにマッチ
+  {M,}                  直前の正規表現の M 回以上の繰り返しにマッチ
+  {,N}                  直前の正規表現の N 回以下の繰り返しにマッチ
+  {N}                   直前の正規表現の N 回の繰り返しにマッチ
+
+  *?                    直前の正規表現の 0 回以上の最短の繰り返しにマッチ
+  +?                    直前の正規表現の 1 回以上の最短の繰り返しにマッチ
+  ??                    直前の正規表現の 0 回か 1 回の最短の繰り返しにマッチ
+  {M,N}?                直前の正規表現の M 回以上 N 回以下の最短の繰り返しにマッチ
+  {M,}?                 直前の正規表現の M 回以上の最短の繰り返しにマッチ
+  {,N}?                 直前の正規表現の N 回以下の最短の繰り返しにマッチ
+
+  ( )                   グルーピング
+  |                     選択
+  \1 ～ \9              後方参照
+  \&                    マッチした文字列全体
+  \`                    マッチした文字列に先行する部分
+  \'                    マッチした文字列に後続する部分
+
+  \f                    改頁
+  \n                    改行
+  \r                    キャリッジリターン
+  \t                    タブ
+  \xXX                  16進法で表す ASCII 文字
+
+  \d                    数字           [0-9]
+  \D                    数字以外       [^0-9]
+  \w                    英数字単語     [0-9a-zA-Z_]
+  \W                    英数字単語以外 [^0-9a-zA-Z_]
+  \s                    空白           [ \t\n\r\f]
+  \S                    空白以外       [^ \t\n\r\f]
+
+  \A                    文字列の先頭にマッチ
+  \z                    文字列の最後にマッチ
+  \b                    単語の境界にマッチ
+  \B                    単語の境界以外にマッチ
+
+  \l                    次のキャラクタを小文字に
+  \u                    次のキャラクタをTitlecaseに
+  \L                    \Eまでを小文字に
+  \U                    \Eまでを大文字に
+  \E                    \L \U を終了
+
+  (?:regexp)            部分正規表現のグルーピングを行うが，後方参照を行わない
+  (?i)                  大文字小文字を無視してマッチを行う (正規表現の先頭に記述した場合のみ有効)
+  (?-i)                 大文字小文字を無視せずにマッチを行う (正規表現の先頭に記述した場合のみ有効)
+
+  \<                    単語の開始にマッチ
+  \>                    単語の終了にマッチ
+  \sc                   シンタックスが c の 1 文字にマッチ
+  \Sc                   シンタックスが c 以外の 1 文字にマッチ
+  \_<                   シンボルの開始位置にマッチ
+  \_>                   シンボルの終了位置にマッチ
+  \_b                   シンボルの境界にマッチ
+  \_B                   シンボルの境界以外にマッチ
+  \_s                   シンボル文字にマッチ
+  \_S                   シンボル文字以外にマッチ
 
 
 === INSTALL
 
 1. {NetInstaller}[http://www7a.biglobe.ne.jp/~hat/xyzzy/ni.html]
-   で xl-ppcre, foo, bar をインストールします。
+   で xl-ppcre をインストールします。
 
-2. ni-autoload を利用していない場合は、
-   ~/.xyzzy または site-lisp/siteinit.l に以下のコードを追加します。
+2. xl-ppcre はライブラリであるため自動的にロードはされません。
+   必要な時点で require してください。
 
-     (require "xl-ppcre")
 
-   ※ ni-autoload を利用している場合は設定は不要です。
+=== REFERENCE
 
-3. 設定を反映させるため xyzzy を再起動してください。
+パッケージ名は xl-ppcre (ニックネームは ppcre) です。
 
-   ※siteinit.l に記述した場合には再ダンプが必要です。
+xl-ppcre パッケージからは以下の関数を export しています。
+API の仕様についてはリンク先の cl-ppcre のドキュメントを参照してください。
+
+1. Scanning
+   1. {create-scanner}[http://weitz.de/cl-ppcre/#create-scanner]
+   2. {scan}[http://weitz.de/cl-ppcre/#scan]
+   3. {scan-to-strings}[http://weitz.de/cl-ppcre/#scan-to-strings]
+   4. {register-groups-bind}[http://weitz.de/cl-ppcre/#register-groups-bind]
+   5. {do-scans}[http://weitz.de/cl-ppcre/#do-scans]
+   6. {do-matches}[http://weitz.de/cl-ppcre/#do-matches]
+   7. {do-matches-as-strings}[http://weitz.de/cl-ppcre/#do-matches-as-strings]
+   8. {do-register-groups}[http://weitz.de/cl-ppcre/#do-register-groups]
+   9. {all-matches}[http://weitz.de/cl-ppcre/#all-matches]
+   10. {all-matches-as-strings}[http://weitz.de/cl-ppcre/#all-matches-as-strings]
+2. Splitting
+   1. {split}[http://weitz.de/cl-ppcre/#split]
+   2. {regex-replace}[http://weitz.de/cl-ppcre/#regex-replace]
+   3. {regex-replace-all}[http://weitz.de/cl-ppcre/#regex-replace-all]
+3. Miscellaneous
+   1. {quote-meta-chars}[http://weitz.de/cl-ppcre/#quote-meta-chars]
+4. Conditions
+   1. {ppcre-error}[http://weitz.de/cl-ppcre/#ppcre-error]
+   2. {ppcre-invocation-error}[http://weitz.de/cl-ppcre/#ppcre-invocation-error]
+   3. {ppcre-syntax-error}[http://weitz.de/cl-ppcre/#ppcre-syntax-error]
+   4. {ppcre-syntax-error-string}[http://weitz.de/cl-ppcre/#ppcre-syntax-error-string]
+   5. {ppcre-syntax-error-pos}[http://weitz.de/cl-ppcre/#ppcre-syntax-error-pos]
+
+以下の変数は cl-ppcre との互換性のために定義してありますが機能しません。
+
+* <tt>\*property-resolver*</tt>
+* <tt>\*regex-char-code-limit*</tt>
+* <tt>\*use-bmh-matchers*</tt>
+* <tt>\*optimize-char-classes*</tt>
+* <tt>\*allow-quoting*</tt>
+* <tt>\*allow-named-registers*</tt>
+
+以下の関数は提供していません。
+
+* <tt>parse-tree-synonym</tt>
+* <tt>define-parse-tree-synonym</tt>
+* <tt>parse-string</tt>
+* <tt>create-optimized-test-function</tt>
+* <tt>regex-apropos</tt>
+* <tt>regex-apropos-list</tt>
 
 
 === TODO
 
+* マルチラインモード、シングルラインモード、拡張正規表現の実装
+* regex-replace
+  * :match, :before-match などのサポート
 * create-scanner
   * regex が文字列リテラルや defconstant なら、do-xxx のマクロ展開時に
     正規表現のコンパイルまでしてしまう
   * :digit-char などのサポート
-* マルチラインモード、シングルラインモード、拡張正規表現の実装
 * ユニコードプロパティ
-* テスト
-* ドキュメント
 
 
 === KNOWN BUGS
@@ -87,8 +272,9 @@ xl-ppcre は MIT/X ライセンスに従って本ソフトウェアを使用、�
   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-xl-ppcre では以下の表示のもと {psre-reader.l}[http://github.com/youz/reut/] を使用しています。
+xl-ppcre では以下の表示のもと {psre-reader.l}[http://github.com/youz/reut/] を改版して利用しています。
 
+  Copyright (C) 2011 MIYAMUKO Katsuyuki.
   Copyright (C) 2009-2010 Yousuke Ushiki
   All rights reserved.
 
