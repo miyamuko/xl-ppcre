@@ -50,10 +50,21 @@
   )
 
 (define-condition ppcre-invocation-error (ppcre-error)
-  )
+  ()
+  ;; 孫コンディションの場合、report を定義しないと
+  ;; バイトコンパイルしたあとにロードできない
+  ;; => ディスパッチングマクロ副文字ではありません: <
+  (:report (lambda (c s)
+             (format s
+                     (ppcre-invocation-error-format-string c)
+                     (ppcre-invocation-error-format-arguments c)))))
 
 (define-condition ppcre-syntax-error (ppcre-error)
-  (string pos))
+  (string pos)
+  (:report (lambda (c s)
+             (format s
+                     (ppcre-syntax-error-format-string c)
+                     (ppcre-syntax-error-format-arguments c)))))
 
 
 (defun raise-invocation-error (format-string &rest format-args)

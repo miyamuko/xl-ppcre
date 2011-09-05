@@ -1,3 +1,8 @@
+2011-09-05  MIYAMUKO Katsuyuki
+
+	* conditions.l: バイトコンパイルしたファイルがロードできなかった
+	問題を修正
+
 2011-09-03  MIYAMUKO Katsuyuki
 
 	* (create-scanner): 不正な正規表現の場合は ppcre-syntax-error
