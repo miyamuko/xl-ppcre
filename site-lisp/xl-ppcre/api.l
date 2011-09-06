@@ -59,14 +59,14 @@
   (values
    (case (type-of regex)
      (regexp
+      (when (or case-insensitive-mode multi-line-mode single-line-mode extended-mode)
+        (raise-modify-existing-scanner))
       regex)
      ((simple-string string)
       ;; (?i) を特別に処理する
       (when (string-match "(\\?\\(-\\)?i)" regex)
         (unless (zerop (match-beginning 0))
-          (raise-syntax-error regex nil
-                              "~A は文字列の先頭にある場合のみサポートしてます。"
-                              (match-string 0)))
+          (raise-illegal-embedded-flag regex (match-string 0)))
         (setf regex (subseq regex (match-end 0)))
         (setf case-insensitive-mode (if (match-string 1) nil t)))
       ;; (compile-regexp "") => nil
@@ -77,9 +77,7 @@
         (error (c)
           (raise-syntax-error regex nil (format nil "~A" c)))))
      (t
-      (error 'type-error
-             :datum regex
-             :expected-type '(or regexp string))))
+      (raise-parse-tree-not-supported regex)))
    nil))
 
 (defun scan (regex target-string &key start end)

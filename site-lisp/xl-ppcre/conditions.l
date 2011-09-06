@@ -81,11 +81,21 @@
          :pos pos
          ))
 
+
+(defun raise-parse-tree-not-supported (regex)
+  (raise-syntax-error regex nil "Parse tree 形式はサポートしていません。"))
+
+(defun raise-illegal-embedded-flag (regex flag)
+  (raise-syntax-error regex nil "~A は文字列の先頭にある場合のみサポートしてます。" flag))
+
 (defun raise-illegal-replacement (token)
-  (raise-invocation-error "Illegal substring \"~A\" in replacement string." token))
+  (raise-invocation-error "不正な置換文字列です: \"~A\"" token))
 
 (defun raise-non-existent-register (n)
-  (raise-invocation-error "Reference to non-existent register ~A in replacement string." n))
+  (raise-invocation-error "存在しない後方参照です: ~A" n))
+
+(defun raise-modify-existing-scanner ()
+  (raise-invocation-error "作成済みの scanner の属性をキーワード引数で変更できません"))
 
 
 (provide "xl-ppcre/conditions")

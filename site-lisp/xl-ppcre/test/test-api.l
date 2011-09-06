@@ -75,6 +75,15 @@
   (assert-error 'ppcre-syntax-error
       (create-scanner "("))
 
+  (assert-error 'ppcre-invocation-error
+      (create-scanner (create-scanner "a") :case-insensitive-mode t))
+  (assert-error 'ppcre-invocation-error
+      (create-scanner (create-scanner "a") :multi-line-mode t))
+  (assert-error 'ppcre-invocation-error
+      (create-scanner (create-scanner "a") :single-line-mode t))
+  (assert-error 'ppcre-invocation-error
+      (create-scanner (create-scanner "a") :extended-mode t))
+
   (assert-equal
       (values 0 "foo")
       (values
@@ -143,18 +152,36 @@
   )
 
 (define-test api/scan
-  (assert-error 'type-error
+  (assert-error 'ppcre-syntax-error
       (scan nil nil))
 
-  (assert-error 'type-error
+  (assert-error 'ppcre-syntax-error
       (scan nil ""))
 
-  (assert-error 'type-error
+  #+incompatible
+  (assert-equalp
+      (values 0 0 #() #())
       (scan "" nil))
 
+  #+incompatible
   (assert-equalp
-      nil
+      (values 0 0 #() #())
       (scan "" ""))
+
+  #+incompatible
+  (assert-equalp
+      (values 0 0 #() #())
+      (scan "" "foo"))
+
+  #+incompatible
+  (assert-equalp
+      (values 1 1 #() #())
+      (scan "" "foo" :start 1))
+
+  #+incompatible
+  (assert-equalp
+      (values 0 0 #() #())
+      (scan "" "foo" :end 0))
 
   (assert-equalp
       nil
@@ -188,18 +215,36 @@
   )
 
 (define-test api/scan-to-strings
-  (assert-error 'type-error
+  (assert-error 'ppcre-syntax-error
       (scan-to-strings nil nil))
 
-  (assert-error 'type-error
+  (assert-error 'ppcre-syntax-error
       (scan-to-strings nil ""))
 
-  (assert-error 'type-error
+  #+incompatible
+  (assert-equalp
+      (values nil #())
       (scan-to-strings "" nil))
 
+  #+incompatible
   (assert-equalp
-      nil
+      (values nil #())
       (scan-to-strings "" ""))
+
+  #+incompatible
+  (assert-equalp
+      (values nil #())
+      (scan-to-strings "" "foo"))
+
+  #+incompatible
+  (assert-equalp
+      (values nil #())
+      (scan-to-strings "" "foo" :start 1))
+
+  #+incompatible
+  (assert-equalp
+      (values nil #())
+      (scan-to-strings "" "foo" :end 0))
 
   (assert-equalp
       (values "aaab" #())
@@ -345,6 +390,18 @@
   )
 
 (define-test api/all-matches
+  #+incompatible
+  (assert-equal
+      (list 0 0)
+      (all-matches "" ""))
+  #+incompatible
+  (assert-equal
+      (list 0 0 1 1 2 2 3 3)
+      (all-matches "" "foo"))
+  #+incompatible
+  (assert-equal
+      (list 1 1 2 2 3 3)
+      (ppcre:all-matches "" "foo" :start 1))
   (assert-equal
       (list 5 6 9 10)
       (all-matches "a" "foo bar baz"))
