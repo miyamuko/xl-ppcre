@@ -1,5 +1,14 @@
 2011-09-06  MIYAMUKO Katsuyuki
 
+	* (apply-replacement, optimize-replacement): 置換文字列として :before-match,
+	:after-match, :match, :backslash をサポート
+	(ppcre:regex-replace
+	 "bar" "foo bar baz"
+	 '("[frob (was '" :match "' between '" :before-match "' and '" :after-match "')]"))
+
+	* (regex-replace-all0, apply-replacement, optimize-replacement): 置換文字列
+	を最適化して可能な限り substitute-string で処理するようにした
+
 	* (regex-replace-all-simple, replace-match-string): cl-ppcre に合わせて
 	\0 は ppcre-invocation-error とした
 	xyzzy の substitute-string は \0 をマッチした文字列全体と置き換える

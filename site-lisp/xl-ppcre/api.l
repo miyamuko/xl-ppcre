@@ -246,9 +246,9 @@
 (defun regex-replace-all0 (regex target-string replacement
                                  &key limit start end preserve-case simple-calls element-type)
   (setf regex (create-scanner regex))
+  (setf replacement (optimize-replacement replacement))
   (if (and (stringp replacement)
-           (not preserve-case)
-           (not (string-match "\\\\\\([&`']\\)" replacement))) ; \& \' \` ‚Í substitute-string ‚Íˆ—‚Å‚«‚È‚¢
+           (not preserve-case))
       (regex-replace-all-simple regex target-string replacement
                                 :start start :end end :limit limit)
     (regex-replace-all-complex regex target-string replacement
@@ -259,8 +259,6 @@
 
 (defun regex-replace-all-simple (regex target-string replacement
                                        &key limit start end)
-  (when (string-match "\\0" replacement)
-    (raise-illegal-replacement "\\0"))
   (multiple-value-bind (str n)
       (substitute-string target-string regex replacement :count limit :start start :end end)
     (values str (< 0 n))))
@@ -314,22 +312,25 @@
                                         match-var reg-vars
                                         match-start match-end reg-starts reg-ends
                                         &key start end simple-calls)
-  (when (atom replacement)
-    (setf replacement (list replacement)))
-  (list->string
-   (mapcar #'(lambda (rep)
-               (cond ((stringp rep)
-                      (replace-match-string rep target-string match-var reg-vars match-start match-end))
-                     ((or (functionp rep)
-                          (symbolp rep))
-                      (if simple-calls
-                          (apply rep match-var reg-vars)
-                        (funcall rep target-string start end match-start match-end reg-starts reg-ends)))
-                     ((integerp rep)
-                      (nth rep reg-vars))
-                     (t
-                      (error "Invalid replacement: ~S" rep))))
-           replacement)))
+  (when (stringp replacement)
+    (return-from apply-replacement (string-replace-match target-string replacement)))
+  (flet ((call-replacement (replacement)
+           (if simple-calls
+               (apply replacement match-var reg-vars)
+             (funcall replacement target-string start end match-start match-end reg-starts reg-ends))))
+    (list->string
+     (mapcar #'(lambda (rep)
+                 (cond ((stringp rep)
+                        (string-replace-match target-string rep))
+                       ((functionp rep)
+                        (call-replacement rep))
+                       ((symbolp rep)
+                        (case rep
+                          (:before-match (subseq target-string 0 match-start))
+                          (:after-match (subseq target-string match-end))
+                          (t (call-replacement rep))))
+                       ))
+             replacement))))
 
 (defun quote-meta-chars (string)
   (identity

@@ -103,33 +103,6 @@
   (and (upper-case-p (char str 0))
        (downcase-string-p (subseq str 1))))
 
-(defun replace-match-string (str target-string match-var reg-vars match-start match-end)
-  (let ((start 0)
-        r)
-    (while (string-match "\\\\\\([0-9&`']\\)" str start)
-      (let ((ref (match-string 1))
-            (beg (match-beginning 0))
-            (end (match-end 0)))
-        (push (subseq str start beg) r)
-        (push (cond ((string= "&" ref)
-                     match-var)
-                    ((string= "`" ref)
-                     (subseq target-string 0 match-start))
-                    ((string= "'" ref)
-                     (subseq target-string match-end))
-                    (t
-                     (let ((n (parse-integer ref)))
-                       (when (zerop n)
-                         (raise-illegal-replacement "\\0"))
-                       (nth (- n 1) reg-vars))))
-              r)
-        (setf start end)))
-    (if r
-        (progn
-          (push (subseq str start) r)
-          (list->string (nreverse r)))
-      str)))
-
 (defun convert-case (str match-var)
   (cond ((upcase-string-p match-var)
          (string-upcase str))
@@ -139,6 +112,53 @@
          (string-capitalize str))
         (t
          str)))
+
+(defun optimize-replacement (replacement)
+  (when (atom replacement)
+    (setf replacement (list replacement)))
+  (let (r tmp)
+    (flet ((flush-temp-string ()
+             (when tmp
+               (push (list->string (nreverse tmp)) r)
+               (setf tmp nil))))
+      (dolist (rep replacement)
+        (cond ((integerp rep)
+               (push (format nil "\\~A" rep) tmp))
+              ((stringp rep)
+               (when (string-match "\\0" rep)
+                 (raise-illegal-replacement "\\0"))
+               (let ((last-match 0))
+                 ;; ’uŠ·•¶Žš—ñ’†‚Ì \` \' ‚ð :before-match, :after-match ‚É“WŠJ‚·‚é
+                 (do-matches (ms me "\\\\['`]" rep)
+                   (when (/= last-match ms)
+                     (push (subseq rep last-match ms) tmp))
+                   (flush-temp-string)
+                   (push (if (char= (char (match-string 0) 1) #\`)
+                             :before-match :after-match)
+                         r)
+                   (setf last-match me))
+                 (push (subseq rep last-match) tmp)))
+              ((symbolp rep)
+               ;; :match, :backslash ‚Í \& \ ‚Æ‚µ‚Ä’uŠ·•¶Žš—ñ‚É–„‚ßž‚Þ
+               ;; :before-match, :after-match ‚Í‚»‚Ì‚Ü‚Ü
+               (let ((n (case rep
+                          (:match "\\&")
+                          (:backslash "\\")
+                          (t rep))))
+                 (if (stringp n)
+                     (push n tmp)
+                   (progn
+                     (flush-temp-string)
+                     (push n r)))))
+              (t
+               (flush-temp-string)
+               (push rep r)
+               )))
+      (flush-temp-string)
+      (if (and (stringp (car r))
+               (not (cdr r)))
+          (car r)
+        (nreverse r)))))
 
 (defun list->string (lst)
   (format nil "~{~A~}" (remove-if #'null lst)))

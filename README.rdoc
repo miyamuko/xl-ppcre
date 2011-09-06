@@ -225,8 +225,6 @@ API の仕様についてはリンク先の cl-ppcre のドキュメントを参
 === TODO
 
 * マルチラインモード、シングルラインモード、拡張正規表現の実装
-* regex-replace
-  * :match, :before-match などのサポート
 * create-scanner
   * regex が文字列リテラルや defconstant なら、do-xxx のマクロ展開時に
     正規表現のコンパイルまでしてしまう

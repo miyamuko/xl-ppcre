@@ -551,7 +551,6 @@ frob"))
       (values "foo [frob (was 'bar' between 'foo ' and ' baz')] baz" t)
       (regex-replace "bar" "foo bar baz" "[frob (was '\\&' between '\\`' and '\\'')]"))
 
-  #+skip
   (assert-equal
       (values "foo [frob (was 'bar' between 'foo ' and ' baz')] baz" t)
       (regex-replace "bar" "foo bar baz"
