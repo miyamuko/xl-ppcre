@@ -85,21 +85,21 @@
 (defun scan (regex target-string &key start end)
   (setf regex (create-scanner regex))
   (when (string-match regex target-string start end)
-    (let ((n (count-register regex)))
+    (let ((reg-bound (count-register regex)))
       (values
        (match-beginning 0)
        (match-end 0)
-       (make-register-array n #'match-beginning)
-       (make-register-array n #'match-end)
+       (make-register-array reg-bound #'match-beginning)
+       (make-register-array reg-bound #'match-end)
        ))))
 
 (defun scan-to-strings (regex target-string &key start end sharedp)
   (setf regex (create-scanner regex))
   (when (string-match regex target-string start end)
-    (let ((n (count-register regex)))
+    (let ((reg-bound (count-register regex)))
       (values
        (match-string 0)
-       (make-register-array n #'match-string)
+       (make-register-array reg-bound #'match-string)
        ))))
 
 (defmacro register-groups-bind (var-list (regex target-string &key start end sharedp) &body body)
@@ -111,13 +111,13 @@
                                  &optional result-form
                                  &key start end)
                     &body body)
-  (let ((gn (gensym)))
+  (let ((greg-bound (gensym)))
     (make-do-match-body #'(lambda (re ms me)
-                            `((,gn (count-register ,re))
+                            `((,greg-bound (count-register ,re))
                               (,match-start ,ms)
                               (,match-end ,me)
-                              (,reg-starts (make-register-array ,gn #'match-beginning))
-                              (,reg-ends (make-register-array ,gn #'match-end))))
+                              (,reg-starts (make-register-array ,greg-bound #'match-beginning))
+                              (,reg-ends (make-register-array ,greg-bound #'match-end))))
                         regex target-string result-form start end body)))
 
 (defmacro do-matches ((match-start match-end regex target-string
@@ -198,7 +198,7 @@
   (setf regex (create-scanner regex))
   (let ((last-match-start 0)
         (last-match-end 0)
-        (n (count-register regex))
+        (reg-bound (count-register regex))
         (c 0)
         r)
     (when (and limit (zerop limit))
@@ -213,7 +213,7 @@
           (return))
         (push (subseq target-string last-match-end match-start) r)
         (when with-registers-p
-          (dolist (reg (make-register-list n #'match-string))
+          (dolist (reg (make-register-list reg-bound #'match-string))
             (when (or reg (not omit-unmatched-p))
               (push reg r))))
         (setf last-match-start match-start
@@ -266,14 +266,14 @@
 (defun regex-replace-all-complex (regex target-string replacement
                                         &key limit start end preserve-case simple-calls element-type)
   (let ((last-match-end 0)
-        (n (count-register regex))
+        (reg-bound (count-register regex))
         (c 0)
         r)
     (do-scans (match-start match-end reg-starts reg-ends
                            regex target-string nil
                            :start start :end end)
       (let ((match-var (match-string 0))
-            (reg-vars (make-register-list n #'match-string)))
+            (reg-vars (make-register-list reg-bound #'match-string)))
         (when (/= last-match-end match-start)
           (push (subseq target-string last-match-end match-start) r))
         (push (eval-replacement target-string replacement
