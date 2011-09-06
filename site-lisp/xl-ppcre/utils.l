@@ -130,6 +130,16 @@
           (list->string (nreverse r)))
       str)))
 
+(defun convert-case (str match-var)
+  (cond ((upcase-string-p match-var)
+         (string-upcase str))
+        ((downcase-string-p match-var)
+         (string-downcase str))
+        ((capitalcase-string-p match-var)
+         (string-capitalize str))
+        (t
+         str)))
+
 (defun list->string (lst)
   (format nil "~{~A~}" (remove-if #'null lst)))
 

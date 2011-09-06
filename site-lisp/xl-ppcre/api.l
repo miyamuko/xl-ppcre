@@ -307,14 +307,7 @@
                               :start start :end end
                               :simple-calls simple-calls)))
     (if (and r preserve-case)
-        (cond ((upcase-string-p match-var)
-               (string-upcase r))
-              ((downcase-string-p match-var)
-               (string-downcase r))
-              ((capitalcase-string-p match-var)
-               (string-capitalize r))
-              (t
-               r))
+        (convert-case r match-var)
       r)))
 
 (defun apply-replacement (target-string replacement
