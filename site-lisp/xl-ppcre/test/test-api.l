@@ -564,6 +564,14 @@ frob"))
                          (format nil "~A [~{~A~^.~}]" match registers))
                      :simple-calls t))
 
+  (assert-equal
+      (values "[ bar baz] bar baz" t)
+      (ppcre:regex-replace "\\w+" "foo bar baz" "[\\']"))
+
+  (assert-equal
+      (values "[foo] bar baz" t)
+      (ppcre:regex-replace "\\w+" "foo bar baz" "[\\&]"))
+
   (assert-error 'ppcre-invocation-error
       (regex-replace "fo+" "foo bar" "[\\0]"))
 
@@ -587,6 +595,14 @@ frob"))
   (assert-equal
       "--"
       (regex-replace-all "(\\d+)-(\\d+)-(\\d+)" "2011-09-03" "\\4-\\5-\\6"))
+
+  (assert-equal
+      (values "[ bar baz] [ baz] []" t)
+      (ppcre:regex-replace-all "\\w+" "foo bar baz" "[\\']"))
+
+  (assert-equal
+      (values "[foo] [bar] [baz]" t)
+      (ppcre:regex-replace-all "\\w+" "foo bar baz" "[\\&]"))
 
   (let ((qp-regex (create-scanner "[^\\x20-\\x7f]")))
     (flet ((encode-quoted-printable (string)

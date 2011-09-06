@@ -252,7 +252,7 @@
       (regex-replace-all-simple regex target-string replacement
                                 :start start :end end :limit limit)
     (regex-replace-all-complex regex target-string replacement
-                               :start start :end end
+                               :start start :end end :limit limit
                                :preserve-case preserve-case
                                :simple-calls simple-calls
                                :element-type element-type)))
