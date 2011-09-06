@@ -81,6 +81,9 @@
          :pos pos
          ))
 
+(defun raise-illegal-replacement (token)
+  (raise-invocation-error "Illegal substring \"~A\" in replacement string." token))
+
 
 (provide "xl-ppcre/conditions")
 

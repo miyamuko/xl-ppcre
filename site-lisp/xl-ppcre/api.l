@@ -259,6 +259,8 @@
 
 (defun regex-replace-all-simple (regex target-string replacement
                                        &key limit start end)
+  (when (string-match "\\0" replacement)
+    (raise-illegal-replacement "\\0"))
   (multiple-value-bind (str n)
       (substitute-string target-string regex replacement :count limit :start start :end end)
     (values str (< 0 n))))

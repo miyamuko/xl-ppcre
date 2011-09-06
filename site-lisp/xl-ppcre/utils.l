@@ -118,7 +118,10 @@
                     ((string= "'" ref)
                      (subseq target-string match-end))
                     (t
-                     (nth (- (parse-integer ref) 1) reg-vars)))
+                     (let ((n (parse-integer ref)))
+                       (when (zerop n)
+                         (raise-illegal-replacement "\\0"))
+                       (nth (- n 1) reg-vars))))
               r)
         (setf start end)))
     (if r

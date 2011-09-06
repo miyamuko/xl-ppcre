@@ -1,3 +1,9 @@
+2011-09-06  MIYAMUKO Katsuyuki
+
+	* (regex-replace-all-simple, replace-match-string): cl-ppcre に合わせて
+	\0 は ppcre-invocation-error とした
+	xyzzy の substitute-string は \0 をマッチした文字列全体と置き換える
+
 2011-09-05  MIYAMUKO Katsuyuki
 
 	* (convert-from-psre): \A \z \W \w をサポート

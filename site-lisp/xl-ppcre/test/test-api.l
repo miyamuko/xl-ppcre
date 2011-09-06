@@ -564,6 +564,12 @@ frob"))
                      #'(lambda (match &rest registers)
                          (format nil "~A [~{~A~^.~}]" match registers))
                      :simple-calls t))
+
+  (assert-error 'ppcre-invocation-error
+      (regex-replace "fo+" "foo bar" "[\\0]"))
+
+  (assert-error 'ppcre-invocation-error
+      (regex-replace "fo+" "foo bar" '("[\\0]")))
   )
 
 (define-test api/regex-replace-all
