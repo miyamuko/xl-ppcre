@@ -55,14 +55,14 @@
   ;; バイトコンパイルしたあとにロードできない
   ;; => ディスパッチングマクロ副文字ではありません: <
   (:report (lambda (c s)
-             (format s
+             (apply 'format s
                      (ppcre-invocation-error-format-string c)
                      (ppcre-invocation-error-format-arguments c)))))
 
 (define-condition ppcre-syntax-error (ppcre-error)
   (string pos)
   (:report (lambda (c s)
-             (format s
+             (apply 'format s
                      (ppcre-syntax-error-format-string c)
                      (ppcre-syntax-error-format-arguments c)))))
 
