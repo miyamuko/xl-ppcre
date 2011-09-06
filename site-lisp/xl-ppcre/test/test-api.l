@@ -593,16 +593,29 @@ frob"))
       (regex-replace-all "(\\d+)-(\\d+)-(\\d+)" "2011-09-03" "\\1”N\\2ŒŽ\\3“ú (\\&)"))
 
   (assert-equal
-      "--"
-      (regex-replace-all "(\\d+)-(\\d+)-(\\d+)" "2011-09-03" "\\4-\\5-\\6"))
-
-  (assert-equal
       (values "[ bar baz] [ baz] []" t)
       (ppcre:regex-replace-all "\\w+" "foo bar baz" "[\\']"))
 
   (assert-equal
       (values "[foo] [bar] [baz]" t)
       (ppcre:regex-replace-all "\\w+" "foo bar baz" "[\\&]"))
+
+  (assert-equal
+      (values "foo bar" t)
+      (ppcre:regex-replace-all "(fo+)" "foo" '(0 " bar")))
+
+  (assert-error 'ppcre-invocation-error
+      (ppcre:regex-replace-all "(fo+)" "foo" '(1 " bar")))
+
+  (assert-equal
+      (values "foo bar" t)
+      (ppcre:regex-replace-all "(fo+)" "foo" "\\1 bar"))
+
+  (assert-error 'ppcre-invocation-error
+      (ppcre:regex-replace-all "(fo+)" "foo" "\\2 bar"))
+
+  (assert-error 'ppcre-invocation-error
+      (ppcre:regex-replace-all "(\\d+)-(\\d+)-(\\d+)" "2011-09-03" "\\4-\\5-\\6"))
 
   (let ((qp-regex (create-scanner "[^\\x20-\\x7f]")))
     (flet ((encode-quoted-printable (string)

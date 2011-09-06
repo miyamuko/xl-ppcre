@@ -113,7 +113,7 @@
         (t
          str)))
 
-(defun optimize-replacement (replacement)
+(defun optimize-replacement (replacement reg-bound)
   (when (atom replacement)
     (setf replacement (list replacement)))
   (let (r tmp)
@@ -123,10 +123,19 @@
                (setf tmp nil))))
       (dolist (rep replacement)
         (cond ((integerp rep)
+               ;; リスト形式では \n - 1 を指定する
+               (incf rep)
+               ;; 最大でも \1 ～ \9 までが有効な範囲
+               (unless (<= 1 rep (min 9 reg-bound))
+                 (raise-non-existent-register rep))
                (push (format nil "\\~A" rep) tmp))
               ((stringp rep)
                (when (string-match "\\0" rep)
                  (raise-illegal-replacement "\\0"))
+               (when (and (< reg-bound 9)
+                          (string-match (format nil "\\\\\\([~D-9]\\)" (1+ reg-bound))
+                                        rep))
+                 (raise-non-existent-register (match-string 1)))
                (let ((last-match 0))
                  ;; 置換文字列中の \` \' を :before-match, :after-match に展開する
                  (do-matches (ms me "\\\\['`]" rep)

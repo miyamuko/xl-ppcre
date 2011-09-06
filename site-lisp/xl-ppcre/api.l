@@ -245,17 +245,19 @@
 
 (defun regex-replace-all0 (regex target-string replacement
                                  &key limit start end preserve-case simple-calls element-type)
-  (setf regex (create-scanner regex))
-  (setf replacement (optimize-replacement replacement))
+  (let* ((regex (create-scanner regex))
+         (reg-bound (count-register regex))
+         (replacement (optimize-replacement replacement reg-bound)))
   (if (and (stringp replacement)
            (not preserve-case))
       (regex-replace-all-simple regex target-string replacement
                                 :start start :end end :limit limit)
     (regex-replace-all-complex regex target-string replacement
                                :start start :end end :limit limit
+                               :reg-bound reg-bound
                                :preserve-case preserve-case
                                :simple-calls simple-calls
-                               :element-type element-type)))
+                               :element-type element-type))))
 
 (defun regex-replace-all-simple (regex target-string replacement
                                        &key limit start end)
@@ -264,7 +266,7 @@
     (values str (< 0 n))))
 
 (defun regex-replace-all-complex (regex target-string replacement
-                                        &key limit start end preserve-case simple-calls element-type)
+                                        &key limit start end reg-bound preserve-case simple-calls element-type)
   (let ((last-match-end 0)
         (reg-bound (count-register regex))
         (c 0)

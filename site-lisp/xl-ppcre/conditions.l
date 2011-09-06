@@ -84,6 +84,9 @@
 (defun raise-illegal-replacement (token)
   (raise-invocation-error "Illegal substring \"~A\" in replacement string." token))
 
+(defun raise-non-existent-register (n)
+  (raise-invocation-error "Reference to non-existent register ~A in replacement string." n))
+
 
 (provide "xl-ppcre/conditions")
 
