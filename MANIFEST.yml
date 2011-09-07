@@ -1,11 +1,11 @@
 package: xl-ppcre
-version: 0.0.1
+version: 1.0.0
 
 sources:
   include:
     - site-lisp/xl-ppcre/**/*.l
   exclude:
-    - site-lisp/xl-ppcre/**/tests/*.l
+    - site-lisp/xl-ppcre/**/test/*.l
 
 document:
   - README.rdoc

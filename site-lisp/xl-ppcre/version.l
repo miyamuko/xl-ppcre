@@ -34,7 +34,7 @@
 (export '(xl-ppcre-version
           ))
 
-(defconstant +xl-ppcre-version+ "0.0.1")
+(defconstant +xl-ppcre-version+ "1.0.0")
 
 (defun xl-ppcre-version ()
   +xl-ppcre-version+)
