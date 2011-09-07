@@ -152,7 +152,7 @@
                ;; :before-match, :after-match ‚Í‚»‚Ì‚Ü‚Ü
                (let ((n (case rep
                           (:match "\\&")
-                          (:backslash "\\")
+                          (:backslash "\\\\")
                           (t rep))))
                  (if (stringp n)
                      (push n tmp)

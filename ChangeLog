@@ -1,3 +1,7 @@
+2011-09-07  MIYAMUKO Katsuyuki
+
+	* (optimize-replacement): :backslash がおかしかったのを修正
+
 2011-09-06  MIYAMUKO Katsuyuki
 
 	* (optimize-replacement, regex-replace-all0): 存在しない後方参照は
