@@ -36,40 +36,6 @@
 (remove-all-tests :xl-ppcre.test)
 
 (define-test api/create-scanner
-  (assert-false
-      (compiled-regexp-case-fold-p
-       (create-scanner "foo")))
-  (assert-false
-      (compiled-regexp-case-fold-p
-       (create-scanner "foo" :case-insensitive-mode nil)))
-  (assert-true
-      (compiled-regexp-case-fold-p
-       (create-scanner "foo" :case-insensitive-mode t)))
-
-  (assert-true
-      (compiled-regexp-case-fold-p
-       (create-scanner "(?i)foo")))
-  (assert-true
-      (compiled-regexp-case-fold-p
-       (create-scanner "(?i)foo" :case-insensitive-mode nil)))
-  (assert-true
-      (compiled-regexp-case-fold-p
-       (create-scanner "(?i)foo" :case-insensitive-mode t)))
-
-  (assert-false
-      (compiled-regexp-case-fold-p
-       (create-scanner "(?-i)foo")))
-  (assert-false
-      (compiled-regexp-case-fold-p
-       (create-scanner "(?-i)foo" :case-insensitive-mode nil)))
-  (assert-false
-      (compiled-regexp-case-fold-p
-       (create-scanner "(?-i)foo" :case-insensitive-mode t)))
-
-  (assert-error 'ppcre-syntax-error
-      (create-scanner "bar(?-i)foo"))
-  (assert-error 'ppcre-syntax-error
-      (create-scanner "bar\n(?-i)foo"))
   (assert-error 'ppcre-syntax-error
       (create-scanner "["))
   (assert-error 'ppcre-syntax-error
@@ -99,7 +65,7 @@
   (assert-equal
       (values 5 "foo")
       (values
-       (string-match (create-scanner "^foo$") "Afoo\nfoo")
+       (string-match (create-scanner "(?m)^foo$") "Afoo\nfoo")
        (match-string 0)))
 
   (assert-equal
@@ -149,6 +115,154 @@
       (values
        (string-match (create-scanner "[\\d\\s]+") "_foo123 _bar")
        (match-string 0)))
+  )
+
+(define-test api/create-scanner-case-insensitive-mode
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "foo")))
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "foo" :case-insensitive-mode nil)))
+  (assert-true
+      (compiled-regexp-case-fold-p
+       (create-scanner "foo" :case-insensitive-mode t)))
+
+  (assert-true
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?i)foo")))
+  (assert-true
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?i)foo" :case-insensitive-mode nil)))
+  (assert-true
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?i)foo" :case-insensitive-mode t)))
+
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?-i)foo")))
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?-i)foo" :case-insensitive-mode nil)))
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?-i)foo" :case-insensitive-mode t)))
+
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?-i)foo")))
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?-i)foo" :case-insensitive-mode nil)))
+  (assert-false
+      (compiled-regexp-case-fold-p
+       (create-scanner "(?-i)foo" :case-insensitive-mode t)))
+  )
+
+(define-test api/create-scanner-single-line-mode
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner ".+" :single-line-mode nil) "foo\nbar"))
+  (assert-equal
+      (list "foo\nbar")
+      (all-matches-as-strings (create-scanner ".+" :single-line-mode t) "foo\nbar"))
+
+  (assert-equal
+      (list "foo\nbar")
+      (all-matches-as-strings (create-scanner "(?s).+") "foo\nbar"))
+  (assert-equal
+      (list "foo\nbar")
+      (all-matches-as-strings (create-scanner "(?s).+" :single-line-mode nil) "foo\nbar"))
+  (assert-equal
+      (list "foo\nbar")
+      (all-matches-as-strings (create-scanner "(?s).+" :single-line-mode t) "foo\nbar"))
+
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "(?-s).+") "foo\nbar"))
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "(?-s).+" :single-line-mode nil) "foo\nbar"))
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "(?-s).+" :single-line-mode t) "foo\nbar"))
+
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "(?s-s).+") "foo\nbar"))
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "(?s-s).+" :single-line-mode nil) "foo\nbar"))
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "(?s-s).+" :single-line-mode t) "foo\nbar"))
+
+  (assert-equalp
+      (values "<a href=\"http://www.yahoo.co.jp/\">
+  Yahoo Japan!
+</a>"
+            #("http://www.yahoo.co.jp/" "
+  Yahoo Japan!
+"))
+      (scan-to-strings
+       (create-scanner "<a\\s+href=\"(.*?)\".*?>(.*?)</a>"
+                       :single-line-mode t)
+       "
+<a href=\"http://www.yahoo.co.jp/\">
+  Yahoo Japan!
+</a>"))
+  )
+
+(define-test api/create-scanner-multi-line-mode
+  (assert-equal
+      (list "foo")
+      (all-matches-as-strings (create-scanner "^\\w+" :multi-line-mode nil) "foo\nbar"))
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "^\\w+" :multi-line-mode t) "foo\nbar"))
+
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "(?m)^\\w+") "foo\nbar"))
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "(?m)^\\w+" :multi-line-mode nil) "foo\nbar"))
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "(?m)^\\w+" :multi-line-mode t) "foo\nbar"))
+
+  (assert-equal
+      (list "foo")
+      (all-matches-as-strings (create-scanner "(?-m)^\\w+") "foo\nbar"))
+  (assert-equal
+      (list "foo")
+      (all-matches-as-strings (create-scanner "(?-m)^\\w+" :multi-line-mode nil) "foo\nbar"))
+  (assert-equal
+      (list "foo")
+      (all-matches-as-strings (create-scanner "(?-m)^\\w+" :multi-line-mode t) "foo\nbar"))
+
+  (assert-equal
+      (list "foo")
+      (all-matches-as-strings (create-scanner "(?m-m)^\\w+") "foo\nbar"))
+  (assert-equal
+      (list "foo")
+      (all-matches-as-strings (create-scanner "(?m-m)^\\w+" :multi-line-mode nil) "foo\nbar"))
+  (assert-equal
+      (list "foo")
+      (all-matches-as-strings (create-scanner "(?m-m)^\\w+" :multi-line-mode t) "foo\nbar"))
+  )
+
+(define-test api/create-scanner-extended-mode
+  (assert-equal
+      (list "foo" "bar")
+      (all-matches-as-strings (create-scanner "
+# Matches to foo or bar.
+^ (      # open
+   foo |
+   bar
+       ) # close
+" :extended-mode t :multi-line-mode t) "foo
+bar"))
   )
 
 (define-test api/scan

@@ -70,6 +70,56 @@
   ;=> "frob Frob FROB bar"
   ;   t
 
+Yahoo Japan! で検索して結果を表示するサンプル
+
+  (defparameter *yahoo-search-result-scanner*
+    (ppcre:create-scanner
+     "
+  <div\\ class=\"hd\">
+    .*?
+    <a .*? href=\"(.*?)\" .*? >   # $1 = link
+      (.*?)                       # $2 = title
+    </a>
+    .*?
+    <div\\ class=\"bd\">
+      <p>
+        (.*?)                     # $3 = snippet
+      </p>
+  "
+     :case-insensitive-mode t ; タグの大文字小文字の違いは無視
+     :single-line-mode t      ; ドットが改行にもマッチするようにする
+     :extended-mode t         ; 拡張正規表現を有効にする
+     ))
+
+  (defun cleanup-text (html)
+    (string-trim " \n" (substitute-string html "<[^<>]+>" "")))
+
+  (defun scan-yahoo-search-result (res)
+    (let (result)
+      (ppcre:do-register-groups (url
+                                 (#'cleanup-text title)
+                                 (#'cleanup-text snippet))
+        (*yahoo-search-result-scanner*
+         (xhr:xhr-response-text res)
+         (nreverse result))
+        (push (list url title snippet) result))))
+
+  (defun yahoo-search (query)
+    (xhr:xhr-get "http://search.yahoo.co.jp/search"
+                 :query `(:ei "UTF-8" :p ,query)
+                 :encoding *encoding-utf8n*
+                 :since :epoch
+                 :key #'scan-yahoo-search-result
+                 ))
+
+  (yahoo-search "cl-ppcre")
+  (("http://weitz.de/cl-ppcre/"
+    "CL-PPCRE - Portable Perl-compatible regular expressions for ..."
+    "28 Oct 2009 ... A portable Perl-compatible regular expressions for Common Lisp. [Open source,   BSD-style license]")
+   ("http://faroffsea.blogspot.com/2009/01/lisprubypython6-common-lisp.html"
+    "遠い海: lispとrubyとpythonと その6 正規表現(common lisp)"
+    "2009年1月1日 ... lispとrubyとpythonと その6 正規表現(common lisp). Common Lispでの正規表現。   cl-ppcreを使う。cl-interpolを入れとくと正規表現リテラルが使えるので、これも入れと  いた方がよい。 ;;正規表現はcl-ppcreで。 ;;asdfでインストールしておく ...")
+   ...)
 
 === DESCRIPTION
 
@@ -79,6 +129,7 @@ xl-ppcre は {CL-PPCRE - Portable Perl-compatible regular expressions for Common
 xl-ppcre は以下の機能を提供しています。
 
 * Perl 互換の正規表現が使えます (一部制限があります)
+* シングルラインモード、マルチラインモード、拡張正規表現
 * cl-ppcre 互換の API
 
 xl-ppcre は以下の機能は <b>提供していません</b>。
@@ -89,7 +140,6 @@ xl-ppcre は以下の機能は <b>提供していません</b>。
 * 正規表現リテラル (リーダーマクロ)はありません
 * replace-string や replace-dialog で Perl 互換の正規表現の利用はできません
 * cl-ppcre の parse tree 形式での指定はできません
-* シングルラインモード、マルチラインモード、拡張正規表現は利用できません
 * ユニコードプロパティは利用できません
 
 xl-ppcre でサポートしている正規表現のメタ文字は以下のとおりです。
@@ -148,8 +198,23 @@ xl-ppcre でサポートしている正規表現のメタ文字は以下のと�
   \E                    \L \U を終了
 
   (?:regexp)            部分正規表現のグルーピングを行うが，後方参照を行わない
-  (?i)                  大文字小文字を無視してマッチを行う (正規表現の先頭に記述した場合のみ有効)
-  (?-i)                 大文字小文字を無視せずにマッチを行う (正規表現の先頭に記述した場合のみ有効)
+  (?imsx-imsx)          正規表現のオプションを指定
+                        - Perl と違い文字列の先頭でのみ使用可能
+                        - i, s, m, x はそれぞれ独立に使用可能
+                        - ハイフンが先行している場合にはそのオプションを打ち消す
+                        - create-scanner のキーワード引数よりも優先
+
+                          i  大小文字の違いを無視する
+                             :case-insensitive-mode 引数と同じ意味
+
+                          s  シングルラインモード (. が改行にマッチ)
+                             :single-line-mode 引数と同じ意味
+
+                          m  マルチラインモード (^ と $ が改行の直前と直後にマッチ)
+                             :multi-line-mode 引数と同じ意味
+
+                          x  拡張正規表現を有効にする
+                             :extended-mode 引数と同じ意味
 
   \<                    単語の開始にマッチ
   \>                    単語の終了にマッチ
@@ -224,11 +289,11 @@ API の仕様についてはリンク先の cl-ppcre のドキュメントを参
 
 === TODO
 
-* マルチラインモード、シングルラインモード、拡張正規表現の実装
 * create-scanner
   * regex が文字列リテラルや defconstant なら、do-xxx のマクロ展開時に
     正規表現のコンパイルまでしてしまう
   * :digit-char などのサポート
+* (?msx-msx) は正規表現途中での部分的な適用を可能にする
 * ユニコードプロパティ
 
 

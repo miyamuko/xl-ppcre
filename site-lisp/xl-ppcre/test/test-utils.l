@@ -1,4 +1,4 @@
-; -*- mode: lisp; package: xl-ppcre.test.util; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-ppcre.test.utils; encoding: shift_jis -*-
 
 ;;; xl-ppcre/test/test-utils.l
 ;;
@@ -28,12 +28,81 @@
 (require "xl-ppcre")
 (require "lisp-unit")
 
-(defpackage :xl-ppcre.test.util
+(defpackage :xl-ppcre.test.utils
   (:use :lisp :editor :lisp-unit :xl-ppcre))
 
-(in-package :xl-ppcre.test.util)
+(in-package :xl-ppcre.test.utils)
 
-(remove-all-tests :xl-ppcre.test.util)
+(remove-all-tests :xl-ppcre.test.utils)
+
+(define-test utils/parse-embedded-flags
+  (assert-error 'ppcre-syntax-error
+      (ppcre::parse-embedded-flags "bar(?i)foo"))
+  (assert-error 'ppcre-syntax-error
+      (ppcre::parse-embedded-flags "bar\n(?-i)foo"))
+  (assert-error 'ppcre-syntax-error
+      (ppcre::parse-embedded-flags "bar\n(?ims-i)foo"))
+  (assert-error 'ppcre-syntax-error
+      (ppcre::parse-embedded-flags "bar\n(?-ims)foo"))
+
+  (assert-equal
+      (values "hoge" nil)
+      (ppcre::parse-embedded-flags "hoge"))
+
+  (assert-equal
+      (values "hoge" nil)
+      (ppcre::parse-embedded-flags "(?)hoge"))
+
+  (assert-equal
+      (values "hoge" '((:case-insensitive-mode . t)))
+      (ppcre::parse-embedded-flags "(?i)hoge"))
+
+  (assert-equal
+      (values "hoge" '((:multi-line-mode . t)
+                       (:single-line-mode . t)))
+      (ppcre::parse-embedded-flags "(?ms)hoge"))
+
+  (assert-equal
+      (values "hoge" '((:case-insensitive-mode . t)
+                       (:multi-line-mode . t)
+                       (:single-line-mode . t)))
+      (ppcre::parse-embedded-flags "(?ims)hoge"))
+
+
+  (assert-equal
+      (values "hoge" '((:case-insensitive-mode . nil)))
+      (ppcre::parse-embedded-flags "(?-i)hoge"))
+
+  (assert-equal
+      (values "hoge" '((:multi-line-mode . nil)
+                       (:single-line-mode . nil)))
+      (ppcre::parse-embedded-flags "(?-ms)hoge"))
+
+  (assert-equal
+      (values "hoge" '((:case-insensitive-mode . nil)
+                       (:multi-line-mode . nil)
+                       (:single-line-mode . nil)))
+      (ppcre::parse-embedded-flags "(?-ims)hoge"))
+
+
+  (assert-equal
+      (values "hoge" '((:case-insensitive-mode . nil)
+                       (:multi-line-mode . t)
+                       (:single-line-mode . t)))
+      (ppcre::parse-embedded-flags "(?ims-i)hoge"))
+
+  (assert-equal
+      (values "hoge" '((:case-insensitive-mode . t)
+                       (:multi-line-mode . nil)
+                       (:single-line-mode . nil)))
+      (ppcre::parse-embedded-flags "(?ims-ms)hoge"))
+
+  (assert-equal
+      (values "hoge" '((:case-insensitive-mode . nil)
+                       (:multi-line-mode . nil)
+                       (:single-line-mode . nil)))
+      (ppcre::parse-embedded-flags "(?ims-ims)hoge"))
+  )
 
 (define-test utils/optimize-replacement
   (assert-equal

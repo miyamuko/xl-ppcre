@@ -28,6 +28,7 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "xl-ppcre/package")
   (require "xl-ppcre/psre-reader")
+  (require "xl-ppcre/conditions")
   )
 
 (in-package :xl-ppcre)
@@ -171,6 +172,28 @@
                (not (cdr r)))
           (car r)
         (nreverse r)))))
+
+(defun parse-embedded-flags (regex)
+  (cond ((string-match "(\\?\\([ims]*\\)-?\\([ims]*\\))" regex)
+         (unless (zerop (match-beginning 0))
+           (raise-illegal-embedded-flag regex (match-string 0)))
+         (let ((on (concatenate 'list (match-string 1)))
+               (off (concatenate 'list (match-string 2))))
+           (flet ((flag-p (key char)
+                    (let ((on-specified-p (member char on))
+                          (off-specified-p (member char off)))
+                      (when (or on-specified-p
+                                off-specified-p)
+                        (list (cons key (and on-specified-p
+                                             (not off-specified-p))))))))
+             (values (subseq regex (match-end 0))
+                     `(,@(flag-p :case-insensitive-mode #\i)
+                       ,@(flag-p :multi-line-mode #\m)
+                       ,@(flag-p :single-line-mode #\s)
+                       ,@(flag-p :extended-mode #\x)
+                       )))))
+        (t
+         (values regex nil))))
 
 (defun list->string (lst)
   (format nil "~{~A~}" (remove-if #'null lst)))

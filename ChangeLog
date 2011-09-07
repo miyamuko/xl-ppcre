@@ -1,5 +1,8 @@
 2011-09-07  MIYAMUKO Katsuyuki
 
+	* (create-scanner, parse-embedded-flags, convert-from-psre):
+	シングルラインモード、マルチラインモード、拡張正規表現を実装
+
 	* (make-register-group-vars): フィルタ関数内で正規表現マッチを
 	行った場合でも、マッチデータが壊れないようにした
 

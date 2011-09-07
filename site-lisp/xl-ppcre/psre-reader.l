@@ -44,6 +44,10 @@
 
 (in-package :xl-ppcre)
 
+(defvar *single-line-mode* nil)
+(defvar *multi-line-mode* nil)
+(defvar *extended-mode* nil)
+
 (defun psre-reader (stream subchar n)
   (with-output-to-string (os)
     (labels
@@ -54,7 +58,18 @@
                ((#\( #\) #\{ #\} #\|) (format os "\\~A" c))
                (#\\ (escape #1#))
                (#\[ (char-class))
+               (#\^ (princ (if *multi-line-mode* "^" "\\`") os))
+               (#\$ (princ (if *multi-line-mode* "$" "\\'") os))
+               (#\. (princ (if *single-line-mode* "\\(?:.\\|\n\\)" ".") os))
+               (#\# (if *extended-mode* (comment) (princ c os)))
+               ((#\SPC #\TAB #\LFD #\RET #\C-l) (unless *extended-mode* (princ c os)))
                (t (princ c os)))))
+         (comment ()
+           (do ((c #1# #1#))
+               ((or (eql c subchar)
+                    (eql c #\LFD)))
+             ; skip
+             ))
          (print-code (s &rest code)
            (let ((code (parse-integer (format nil "~{~A~}" code) :radix 16)))
              (princ (code-char code) s)))
@@ -76,6 +91,7 @@
              (#\S (princ "[^ \t\n\r\f]" os))
              (#\x (print-code os #1# #1#))
              (#\X (print-code os #1# #1# #1# #1#))
+             ((#\SPC #\TAB #\LFD #\RET #\C-l #\#) (if *extended-mode* (princ c os) (format os "\\~A" c)))
              (t (format os "\\~A" c))))
          (char-class ()
            (princ #\[ os)

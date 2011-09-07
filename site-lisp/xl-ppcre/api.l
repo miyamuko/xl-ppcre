@@ -63,17 +63,25 @@
         (raise-modify-existing-scanner))
       regex)
      ((simple-string string)
-      ;; (?i) ‚ð“Á•Ê‚Éˆ—‚·‚é
-      (when (string-match "(\\?\\(-\\)?i)" regex)
-        (unless (zerop (match-beginning 0))
-          (raise-illegal-embedded-flag regex (match-string 0)))
-        (setf regex (subseq regex (match-end 0)))
-        (setf case-insensitive-mode (if (match-string 1) nil t)))
-      ;; (compile-regexp "") => nil
+      (multiple-value-bind (re flags)
+          ;; (?imsx) ‚ðˆ—‚·‚é
+          (parse-embedded-flags regex)
+        (setf regex re)
+        (dolist (flag flags)
+          (case (car flag)
+            (:case-insensitive-mode (setf case-insensitive-mode (cdr flag)))
+            (:single-line-mode (setf single-line-mode (cdr flag)))
+            (:multi-line-mode (setf multi-line-mode (cdr flag)))
+            (:extended-mode (setf extended-mode (cdr flag)))
+            )))
       (handler-case
-          (or (compile-regexp (convert-from-psre regex)
-                              case-insensitive-mode)
-              "")
+          (or (compile-regexp
+               (let ((*single-line-mode* single-line-mode)
+                     (*multi-line-mode* multi-line-mode)
+                     (*extended-mode* extended-mode))
+                 (convert-from-psre regex))
+               case-insensitive-mode)
+              "") ; (compile-regexp "") => nil
         (error (c)
           (raise-syntax-error regex nil (format nil "~A" c)))))
      (t
