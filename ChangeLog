@@ -1,5 +1,7 @@
 2011-09-07  MIYAMUKO Katsuyuki
 
+	* ライブラリなので ni-autoload 用ファイルを削除
+
 	* (create-scanner, parse-embedded-flags, convert-from-psre):
 	シングルラインモード、マルチラインモード、拡張正規表現を実装
 
