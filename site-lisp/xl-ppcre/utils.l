@@ -44,7 +44,8 @@
                                      (let ((g (gensym)))
                                        `(,var2 (let ((,g (match-string ,(incf n))))
                                                  (when ,g
-                                                   (funcall ,fn ,g))))))
+                                                   (ed::protect-match-data
+                                                     (funcall ,fn ,g)))))))
                                  (cdr var))))
                       (t
                        (list `(,var (match-string ,(incf n)))))))

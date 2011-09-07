@@ -291,6 +291,21 @@
       (register-groups-bind (fname lname (#'parse-integer date month year))
         ("(\\w+)\\s+(\\w+)\\s+(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})" "Frank Zappa 21.12.1940")
         (list fname lname (encode-universal-time 0 0 0 date month year 0))))
+
+  (assert-equalp
+      (list 0 "foo")
+      (register-groups-bind (((lambda (s) (- (parse-integer s) 1)) id)
+                             ((lambda (s) (string-trim " \n" s)) line))
+        ("(?m)^(\\d+)(.+)" "1 foo  \n2 bar  ")
+        (list id line)))
+
+  (assert-equalp
+      (list "foo" "30")
+      (labels ((cleanup-html-tags (s)
+                 (substitute-string s "<[^<>]*>" "")))
+        (register-groups-bind ((#'cleanup-html-tags name age))
+          ("(\\S+)\\s+(\\S+)" "<em>foo</em> <i>30</i>")
+          (list name age))))
   )
 
 (define-test api/do-scans

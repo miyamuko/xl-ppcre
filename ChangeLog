@@ -1,5 +1,8 @@
 2011-09-07  MIYAMUKO Katsuyuki
 
+	* (make-register-group-vars): フィルタ関数内で正規表現マッチを
+	行った場合でも、マッチデータが壊れないようにした
+
 	* (optimize-replacement): :backslash がおかしかったのを修正
 
 2011-09-06  MIYAMUKO Katsuyuki
