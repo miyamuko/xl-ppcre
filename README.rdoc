@@ -113,13 +113,14 @@ Yahoo Japan! で検索して結果を表示するサンプル
                  ))
 
   (yahoo-search "cl-ppcre")
-  (("http://weitz.de/cl-ppcre/"
-    "CL-PPCRE - Portable Perl-compatible regular expressions for ..."
-    "28 Oct 2009 ... A portable Perl-compatible regular expressions for Common Lisp. [Open source,   BSD-style license]")
-   ("http://faroffsea.blogspot.com/2009/01/lisprubypython6-common-lisp.html"
-    "遠い海: lispとrubyとpythonと その6 正規表現(common lisp)"
-    "2009年1月1日 ... lispとrubyとpythonと その6 正規表現(common lisp). Common Lispでの正規表現。   cl-ppcreを使う。cl-interpolを入れとくと正規表現リテラルが使えるので、これも入れと  いた方がよい。 ;;正規表現はcl-ppcreで。 ;;asdfでインストールしておく ...")
-   ...)
+  ;=> (("http://weitz.de/cl-ppcre/"
+  ;     "CL-PPCRE - Portable Perl-compatible regular expressions for ..."
+  ;     "28 Oct 2009 ... A portable Perl-compatible regular expressions for Common Lisp. [Open source,   BSD-style license]")
+  ;    ("http://faroffsea.blogspot.com/2009/01/lisprubypython6-common-lisp.html"
+  ;     "遠い海: lispとrubyとpythonと その6 正規表現(common lisp)"
+  ;     "2009年1月1日 ... lispとrubyとpythonと その6 正規表現(common lisp). Common Lispでの正規表現。   cl-ppcreを使う。cl-interpolを入れとくと正規表現リテラルが使えるので、これも入れと  いた方がよい。 ;;正規表現はcl-ppcreで。 ;;asdfでインストールしておく ...")
+  ;    ...)
+
 
 === DESCRIPTION
 
@@ -289,11 +290,24 @@ API の仕様についてはリンク先の cl-ppcre のドキュメントを参
 
 === TODO
 
+==== 優先度高
+
+* (?msx-msx) は正規表現途中での部分的な適用を可能にする
+* (?i-i) と括弧数のカウントを convert-from-psre 内で処理する
+* ドキュメント
+  * cl-ppcre と互換性がない部分をドキュメントに書く
+    * 正規表現が "" の場合
+  * xyzzy との違いを書く
+    * multi-line-mode がデフォルトで off
+  * create-scanner の戻り値は compiled-regexp なので
+    scan-buffer などの引数に渡せることを書く
+
+==== 優先度低
+
 * create-scanner
   * regex が文字列リテラルや defconstant なら、do-xxx のマクロ展開時に
     正規表現のコンパイルまでしてしまう
-  * :digit-char などのサポート
-* (?msx-msx) は正規表現途中での部分的な適用を可能にする
+  * parse tree のサポート
 * ユニコードプロパティ
 
 
