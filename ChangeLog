@@ -1,5 +1,7 @@
 2011-09-07  MIYAMUKO Katsuyuki
 
+	* xl-ppcre 1.0.0 リリース
+
 	* ライブラリなので ni-autoload 用ファイルを削除
 
 	* (create-scanner, parse-embedded-flags, convert-from-psre):
