@@ -1,5 +1,5 @@
 package: xl-ppcre
-version: 1.0.0
+version: 1.0.1
 
 sources:
   include:
@@ -14,7 +14,3 @@ files:
   include:
     - site-lisp/**/*.l
     - site-lisp/**/*.lc
-    - site-lisp/xl-ppcre/lib/*.dll
-    - site-lisp/xl-ppcre/src/**/*.*
-    - site-lisp/xl-ppcre/examples/**/*.*
-    - site-lisp/xl-ppcre/tests/*.*

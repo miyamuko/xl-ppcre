@@ -1,5 +1,12 @@
 == History
 
+=== 2011/09/20
+
+* 1.0.1 リリース!
+  * register-groups-bind, do-register-groups のインデントスタイルを
+    multiple-value-bind のようにした
+  * "xl-" を付けなくても (require "ppcre") でロードできるようにした
+
 === 2011/09/07
 
 * 1.0.0 リリース!
