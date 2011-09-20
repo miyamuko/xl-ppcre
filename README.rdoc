@@ -19,7 +19,7 @@
   ;   #("aaa" "a")
 
   (ppcre:register-groups-bind (fname lname (#'parse-integer date month year))
-    ("(\\w+)\\s+(\\w+)\\s+(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})" "Frank Zappa 21.12.1940")
+      ("(\\w+)\\s+(\\w+)\\s+(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})" "Frank Zappa 21.12.1940")
     (list fname lname (encode-universal-time 0 0 0 date month year 0)))
   ;=> ("Frank" "Zappa" 1292889600)
 
@@ -47,7 +47,7 @@
 
   (let (result)
     (ppcre:do-register-groups ((#'parse-integer n) (#'intern sign) whitespace)
-      ("(\\d+)|(\\+|-|\\*|/)|(\\s+)" "12*15 - 42/3")
+        ("(\\d+)|(\\+|-|\\*|/)|(\\s+)" "12*15 - 42/3")
       (unless whitespace
         (push (or n sign) result)))
     result)
@@ -99,9 +99,9 @@ Yahoo Japan! で検索して結果を表示するサンプル
       (ppcre:do-register-groups (url
                                  (#'cleanup-text title)
                                  (#'cleanup-text snippet))
-        (*yahoo-search-result-scanner*
-         (xhr:xhr-response-text res)
-         (nreverse result))
+          (*yahoo-search-result-scanner*
+           (xhr:xhr-response-text res)
+           (nreverse result))
         (push (list url title snippet) result))))
 
   (defun yahoo-search (query)

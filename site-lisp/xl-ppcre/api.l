@@ -346,11 +346,11 @@
 
 
 #+xyzzy
-(setf (get 'register-groups-bind 'ed:lisp-indent-hook) 1
+(setf (get 'register-groups-bind 'ed:lisp-indent-hook) 2
       (get 'do-scans 'ed:lisp-indent-hook) 1
       (get 'do-matches 'ed:lisp-indent-hook) 1
       (get 'do-matches-as-strings 'ed:lisp-indent-hook) 1
-      (get 'do-register-groups 'ed:lisp-indent-hook) 1
+      (get 'do-register-groups 'ed:lisp-indent-hook) 2
       )
 
 (provide "xl-ppcre/api")

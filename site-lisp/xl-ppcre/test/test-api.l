@@ -385,32 +385,32 @@ bar"))
   (assert-equalp
       (list "c" "a" "b" "c")
       (register-groups-bind (first second third fourth)
-        ("((a)|(b)|(c))+" "abababc" :sharedp t)
+          ("((a)|(b)|(c))+" "abababc" :sharedp t)
         (list first second third fourth)))
 
   (assert-equalp
       (list nil nil "c")
       (register-groups-bind (nil second third fourth)
-        ("((a)|(b)|(c))()+" "abababc" :start 6)
+          ("((a)|(b)|(c))()+" "abababc" :start 6)
         (list second third fourth)))
 
   (assert-equalp
       nil
       (register-groups-bind (first)
-        ("(a|b)+" "accc" :start 1)
+          ("(a|b)+" "accc" :start 1)
         first))
 
   (assert-equalp
       (list "Frank" "Zappa" 1292889600)
       (register-groups-bind (fname lname (#'parse-integer date month year))
-        ("(\\w+)\\s+(\\w+)\\s+(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})" "Frank Zappa 21.12.1940")
+          ("(\\w+)\\s+(\\w+)\\s+(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})" "Frank Zappa 21.12.1940")
         (list fname lname (encode-universal-time 0 0 0 date month year 0))))
 
   (assert-equalp
       (list 0 "foo")
       (register-groups-bind (((lambda (s) (- (parse-integer s) 1)) id)
                              ((lambda (s) (string-trim " \n" s)) line))
-        ("(?m)^(\\d+)(.+)" "1 foo  \n2 bar  ")
+          ("(?m)^(\\d+)(.+)" "1 foo  \n2 bar  ")
         (list id line)))
 
   (assert-equalp
@@ -418,7 +418,7 @@ bar"))
       (labels ((cleanup-html-tags (s)
                  (substitute-string s "<[^<>]*>" "")))
         (register-groups-bind ((#'cleanup-html-tags name age))
-          ("(\\S+)\\s+(\\S+)" "<em>foo</em> <i>30</i>")
+            ("(\\S+)\\s+(\\S+)" "<em>foo</em> <i>30</i>")
           (list name age))))
   )
 
@@ -426,16 +426,16 @@ bar"))
   (assert-equalp
       :ok
       (do-scans (match-start match-end reg-starts reg-ends
-                                   "\\d+" "foo bar baz"
-                                   :ok)))
+                             "\\d+" "foo bar baz"
+                             :ok)))
   (assert-equalp
       '((0 3 #(0 1) #(1 3))
         (4 7 #(4 5) #(5 7))
         (8 11 #(8 9) #(9 11)))
       (let (result)
         (do-scans (match-start match-end reg-starts reg-ends
-                                     "(\\w)(\\w+)" "foo bar baz"
-                                     (nreverse result))
+                               "(\\w)(\\w+)" "foo bar baz"
+                               (nreverse result))
           (push (list match-start match-end reg-starts reg-ends) result))))
   )
 
@@ -493,12 +493,12 @@ bar"))
   (assert-equalp
       :ok
       (do-register-groups (first second)
-        ("\\d+" "foo bar baz" :ok)
+          ("\\d+" "foo bar baz" :ok)
         ))
 
   (let (result)
     (do-register-groups (first second third fourth)
-      ("((a)|(b)|(c))" "abababc" nil :start 2 :sharedp t)
+        ("((a)|(b)|(c))" "abababc" nil :start 2 :sharedp t)
       (push (list first second third fourth) result))
     (assert-equal
         (nreverse result)
@@ -510,7 +510,7 @@ bar"))
 
   (let (result)
     (do-register-groups ((#'parse-integer n) (#'intern sign) whitespace)
-      ("(\\d+)|(\\+|-|\\*|/)|(\\s+)" "12*15 - 42/3")
+        ("(\\d+)|(\\+|-|\\*|/)|(\\s+)" "12*15 - 42/3")
       (unless whitespace
         (push (or n sign) result)))
     (assert-equal

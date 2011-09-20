@@ -1,3 +1,8 @@
+2011-09-20  MIYAMUKO Katsuyuki
+
+	* (register-groups-bind, do-register-groups): multiple-value-bind と
+	同じようなインデントスタイルにした
+
 2011-09-13  MIYAMUKO Katsuyuki
 
 	* "xl-" を付けなくても (require "ppcre") でロードできるようにした
